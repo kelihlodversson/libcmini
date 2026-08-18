@@ -45,12 +45,12 @@ config ARCH_ARM
 	  The library itself builds cleanly with this selected: crt0 and
 	  the GEMDOS/BIOS/XBIOS trap layer (osbind.h/mintbind.h) are
 	  implemented, using function number in r0, arguments in
-	  registers, svc #1/#13/#14. A handful of rare BIOS/XBIOS calls
-	  needing more than 4 arguments (Rwabs/Lrwabs, Floprd/Flopwr/
-	  Flopfmt/Flopver, Rsconf) aren't available yet, pending a pTOS
-	  kernel-side ABI extension. This hasn't yet been tested end to
-	  end against a running pTOS, only built and, where practical,
-	  exercised in isolation under qemu-arm. See
+	  registers, svc #1/#13/#14. This includes the handful of BIOS/
+	  XBIOS calls needing more than 4 arguments (Rwabs/Lrwabs,
+	  Floprd/Flopwr/Flopfmt/Flopver, Rsconf), which pass a pointer to
+	  a packed argument struct instead. This hasn't yet been tested
+	  end to end against a running pTOS, only built and, where
+	  practical, exercised in isolation under qemu-arm. See
 	  https://github.com/kelihlodversson/libcmini/issues/1 for
 	  details and progress.
 
