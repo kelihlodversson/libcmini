@@ -14,9 +14,11 @@
 #   make                    build the configured library
 #
 # The result of the configuration is stored in the file '.config'.  From
-# there the build system generates obj/autoconf.h (included by every source
-# file through include/config.h) and obj/auto.conf (included by the
-# Makefile).  Neither generated file should ever be edited by hand.
+# there the build system generates obj/auto.conf (included by the Makefile)
+# and obj/autoconf.h -- reachable from C as <config.h>, for any source file
+# that needs to test a symbol from this file with #if, though none
+# currently do (see include/config.h for why).  Neither generated file
+# should ever be edited by hand.
 #
 
 mainmenu "libcmini Configuration"

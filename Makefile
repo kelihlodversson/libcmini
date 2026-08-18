@@ -76,7 +76,7 @@ OBJCOPY=$(CROSSPREFIX)objcopy
 AR=$(CROSSPREFIX)ar
 RANLIB=$(CROSSPREFIX)ranlib
 
-INCLUDE=-Iinclude -I$(SRCDIR)
+INCLUDE=-Iinclude -I$(SRCDIR) -Iobj
 
 ifneq (,$(filter $(STDIO_WITH_LONG_LONG),Y yes y))
 	CFLAGS+=-DSTDIO_WITH_LONG_LONG
