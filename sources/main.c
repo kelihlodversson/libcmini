@@ -113,6 +113,34 @@ void _crtinit(void) {
 	 * Instead of calling Mshrink() and _setstack, this is done inline here,
 	 * because we cannot access the bp parameter after changing the stack anymore.
 	 */
+#if defined(__arm__)
+	{
+		/*
+		 * Explicit fixed registers (rather than plain "r" operands),
+		 * because the new-sp computation below writes to r0 before
+		 * bp/m are read into their call registers; if the compiler
+		 * had put either of them in r0 itself, that first write
+		 * would clobber it out from under us. r5/r6 are outside the
+		 * r0-r4 the call itself uses, so they can't collide. No
+		 * equivalent of the m68k "push some unused space for buggy
+		 * OS" headroom is needed here, see arch/arm/crt0.S.
+		 */
+		register long __bp __asm__("r5") = (long)bp;
+		register long __m  __asm__("r6") = m;
+		__asm__ __volatile__(
+			"\tadd   r0, %[bp], %[m]\n" /* r0 = bp + m = new sp */
+			"\tmov   sp, r0\n"          /* set up the new stack to bp + m */
+			"\tmov   r3, %[m]\n"
+			"\tmov   r2, %[bp]\n"
+			"\tmov   r1, #0\n"
+			"\tmov   r0, #0x4a\n" /* Mshrink */
+			"\tsvc   #1\n"
+			: /* no outputs */
+			: [bp] "r" (__bp), [m] "r" (__m)
+			: "r0", "r1", "r2", "r3", "r4", "ip", "lr", "cc", "memory"
+		);
+	}
+#else
 	__asm__ __volatile__(
 		"\tmovel    %0,%%d0\n"
 		"\taddl     %1,%%d0\n"
@@ -128,6 +156,7 @@ void _crtinit(void) {
 		: "r"(bp), "r"(m)
 		: "d0", "d1", "d2", "a0", "a1", "a2", "cc" AND_MEMORY
 	);
+#endif
 
 	/* local variables must not be accessed after this point,
 	   because we just changed the stack */
