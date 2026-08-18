@@ -6,6 +6,32 @@
 #include <errno.h>
 #include <setjmp.h>
 
+#if defined(__arm__)
+
+/*
+ * NatFeats is an Atari-emulator-specific mechanism (Hatari, ARAnyM, Steem)
+ * for detecting and calling emulator extensions, using an m68k opcode
+ * (dc.w 0x7300/0x7301) that traps to illegal-instruction on real 68k CPUs
+ * and is caught specially by the emulator. There is no ARM/pTOS
+ * equivalent for any of that -- pTOS on ARM doesn't run under one of
+ * these emulators -- so NatFeats is simply never available here. Every
+ * caller already treats nf_init() returning NULL as "not available" and
+ * handles it, so this is a normal, supported outcome, not an error path.
+ */
+
+struct nf_ops *nf_init(void)
+{
+	return NULL;
+}
+
+long nf_get_id(const char *feature_name)
+{
+	(void)feature_name;
+	return 0;
+}
+
+#else
+
 #ifndef __mint_sighandler_t_defined
 #define __mint_sighandler_t_defined 1
 #ifdef __NO_CDECL
@@ -361,10 +387,12 @@ long nf_get_id(const char *feature_name)
 {
 	struct nf_ops *ops;
 	long id = 0;
-	
+
 	if ((ops = nf_init()) != NULL)
 	{
 		id = NF_GET_ID(ops, feature_name);
 	}
 	return id;
 }
+
+#endif /* __arm__ */
