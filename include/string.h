@@ -71,8 +71,16 @@ size_t strxfrm(char* __dest, const char* __src, size_t __n);
 
 /*
  * inline versions of some functions.
+ *
+ * sources/strlen.c, strcmp.c and strcpy.c each #include this header to
+ * pick up __inline_strlen/__inline_strcmp/__inline_strcpy (via a
+ * strlen -> __inline_strlen -style #define for the first two) and use
+ * them, under __OPTIMIZE__, as the body of the real out-of-line
+ * strlen()/strcmp()/strcpy() the library exports -- so these need a
+ * definition whenever __OPTIMIZE__ is set (which -Os always sets),
+ * regardless of whether there's m68k asm to back them with.
  */
-#ifdef __OPTIMIZE__
+#if defined(__OPTIMIZE__) && !defined(__arm__)
 extern __inline __attribute__((__gnu_inline__)) size_t strlen(const char *scan)
 {
 	const char *start = scan;
@@ -86,10 +94,19 @@ extern __inline __attribute__((__gnu_inline__)) size_t strlen(const char *scan)
 	: "cc");
 	return scan - start - 1;
 }
+#elif defined(__OPTIMIZE__)
+extern __inline __attribute__((__gnu_inline__)) size_t strlen(const char *scan)
+{
+	const char *start = scan;
+
+	while (*scan++ != '\0')
+		continue;
+	return scan - start - 1;
+}
 #endif
 
 
-#ifdef __OPTIMIZE__
+#if defined(__OPTIMIZE__) && !defined(__arm__)
 extern __inline __attribute__((__gnu_inline__)) int strcmp(const char *s1, const char *s2)
 {
 #ifdef __mcoldfire__
@@ -130,9 +147,21 @@ extern __inline __attribute__((__gnu_inline__)) int strcmp(const char *s1, const
 	return cmp;
 #endif
 }
+#elif defined(__OPTIMIZE__)
+extern __inline __attribute__((__gnu_inline__)) int strcmp(const char *s1, const char *s2)
+{
+	unsigned char c1, c2;
+
+	do {
+		c1 = *s1++;
+		c2 = *s2++;
+	} while (c1 && c1 == c2);
+	return c1 - c2;
+}
 #endif
 
 
+#if !defined(__arm__)
 extern __inline __attribute__((__gnu_inline__)) char *__inline_strcpy(char *dest, const char *src);
 extern __inline __attribute__((__gnu_inline__)) char *__inline_strcpy(char *dest, const char *src)
 {
@@ -147,6 +176,17 @@ extern __inline __attribute__((__gnu_inline__)) char *__inline_strcpy(char *dest
 	: "cc" AND_MEMORY);
 	return dest;
 }
+#else
+extern __inline __attribute__((__gnu_inline__)) char *__inline_strcpy(char *dest, const char *src);
+extern __inline __attribute__((__gnu_inline__)) char *__inline_strcpy(char *dest, const char *src)
+{
+	char *dscan = dest;
+
+	while ((*dscan++ = *src++) != '\0')
+		continue;
+	return dest;
+}
+#endif
 #ifdef __OPTIMIZE__
 #define strcpy(dest, src) (__builtin_constant_p(src) && strlen(src) < 2 ? __builtin_strcpy(dest, src) : __inline_strcpy(dest, src))
 #endif
