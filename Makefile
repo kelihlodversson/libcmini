@@ -16,9 +16,21 @@ endif
 all:$(patsubst %,%/$(APP),$(TRGTDIRS))
 
 #
-# ONLY_68K: for faster developing; set to Y to build only the 68000 library
-# BUILD_CF: Build ColdFire binaries.
+# Configuration: tools/kconfig.mk provides the "make <name>_defconfig" /
+# "make menuconfig" front ends (see configs/ for the ready-made ones), which
+# write .config and regenerate obj/auto.conf and obj/autoconf.h from the
+# Kconfig tree; obj/auto.conf sets ARCH_M68K/ARCH_ARM and the
+# ONLY_68K/BUILD_*/COMPILE_ELF/STDIO_* options below. If .config doesn't
+# exist -- no configuration has been chosen yet -- skip all of that and
+# fall back to building every m68k multilib variant as a.out, matching this
+# Makefile's behavior before the Kconfig migration, so a bare "make" still
+# works with no defconfig step, same as it always has.
 #
+-include tools/kconfig.mk
+
+ifneq ($(wildcard .config),)
+-include obj/auto.conf
+else
 ONLY_68K=N
 BUILD_CF=Y
 BUILD_FAST=$(shell if $(CC) -mfastcall -E - < /dev/null >/dev/null 2>&1; then echo Y; else echo N; fi)
@@ -27,15 +39,30 @@ BUILD_SHORT=Y
 COMPILE_ELF=N
 STDIO_WITH_LONG_LONG=N
 STDIO_MAP_NEWLINE=Y
+endif
 
-ifneq (,$(filter $(COMPILE_ELF),Y yes))
-	CROSSPREFIX=m68k-atari-mintelf-
+ifneq (,$(filter $(ARCH_ARM),Y yes y))
+	ARCHDIR=$(SRCDIR)/arch/arm
+	CROSSPREFIX=arm-none-eabi-
+	# GEMDOS/BIOS/XBIOS's fixed low-memory system variables (osbind.h,
+	# sources/clock.c, ...) are read through a literal-integer-to-pointer
+	# cast, since there's no linker relationship between this library and
+	# whatever OS binary defines them at that address. gcc's -Warray-bounds
+	# flags every such cast as a "likely address zero" bug on ARM, which it
+	# is not: this is standard practice for fixed, ABI-documented addresses.
+	ARCH_CFLAGS=-Wno-array-bounds
 else
-  	CROSSPREFIX=m68k-atari-mint-
+	ARCHDIR=$(SRCDIR)/arch/m68k
+	ifneq (,$(filter $(COMPILE_ELF),Y yes y))
+		CROSSPREFIX=m68k-atari-mintelf-
+	else
+	  	CROSSPREFIX=m68k-atari-mint-
+	endif
 endif
 
 CFLAGS=\
 	   -Wall -Wstrict-prototypes -Wmissing-prototypes -Wdeclaration-after-statement -Werror \
+	   $(ARCH_CFLAGS) \
 	   -Os \
 	   -fomit-frame-pointer
 
@@ -49,43 +76,49 @@ OBJCOPY=$(CROSSPREFIX)objcopy
 AR=$(CROSSPREFIX)ar
 RANLIB=$(CROSSPREFIX)ranlib
 
-INCLUDE=-Iinclude
+INCLUDE=-Iinclude -I$(SRCDIR) -Iobj
 
-ifneq (,$(filter $(STDIO_WITH_LONG_LONG),Y yes))
+ifneq (,$(filter $(STDIO_WITH_LONG_LONG),Y yes y))
 	CFLAGS+=-DSTDIO_WITH_LONG_LONG
 endif
 
-ifneq (,$(filter $(STDIO_MAP_NEWLINE),Y yes))
+ifneq (,$(filter $(STDIO_MAP_NEWLINE),Y yes y))
 	CFLAGS+=-DSTDIO_MAP_NEWLINE
 endif
 
 STARTUP= \
-	$(SRCDIR)/crt0.S
+	$(ARCHDIR)/crt0.S
 
 CSRCS= $(wildcard $(SRCDIR)/*.c)
 
-ASRCS= $(filter-out $(SRCDIR)/crt0.S $(SRCDIR)/minicrt0.S, $(wildcard $(SRCDIR)/*.S))
+# Architecture-specific assembly lives under sources/arch/<arch>/, kept apart
+# from the portable C sources directly under sources/ (see sources/arch/arm/
+# for the ARM equivalents, once ported). Object basenames must stay unique
+# across the whole tree since ASRCS/CSRCS feed into the same flat objs/ dir.
+ASRCS= $(filter-out crt0.S minicrt0.S, $(notdir $(wildcard $(ARCHDIR)/*.S)))
 
 SRCDIR=sources
 
 BUILDDIR=build
 
-ifneq (,$(filter $(ONLY_68K),Y yes))
+ifneq (,$(filter $(ONLY_68K),Y yes y)$(filter $(ARCH_ARM),Y yes y))
 	# asume a multi-lib without flags ar m68000
 	# NOTE \s?$ is important - gcc on Windows outputs \r\n-lineendings but MSYS's grep only accept \n -> \s eats \r
+	# (also used for ARCH_ARM: there is no per-CPU multilib fan-out for it
+	# yet, so just build the toolchain's default-flags variant)
 	MULTILIBDIRS := $(shell $(CC) -print-multi-lib | grep -E ';\s?$$' | sed -e "s/;.*//")
 else
 	MULTILIBDIRS := $(shell $(CC) -print-multi-lib | sed -e "s/;.*//")
-	ifeq (,$(filter $(BUILD_FAST),Y yes))
+	ifeq (,$(filter $(BUILD_FAST),Y yes y))
 		MULTILIBDIRS := $(shell echo $(MULTILIBDIRS) | sed -e 's/\S*fastcall\S*/ /g')
 	endif
-	ifeq (,$(filter $(BUILD_CF),Y yes))
+	ifeq (,$(filter $(BUILD_CF),Y yes y))
 		MULTILIBDIRS := $(shell echo $(MULTILIBDIRS) | sed -e 's/\S*m5475\S*/ /g')
 	endif
-	ifeq (,$(filter $(BUILD_SOFT_FLOAT),Y yes))
+	ifeq (,$(filter $(BUILD_SOFT_FLOAT),Y yes y))
 		MULTILIBDIRS := $(shell echo $(MULTILIBDIRS) | sed -e 's/\S*soft-float\S*/ /g')
 	endif
-	ifeq (,$(filter $(BUILD_SHORT),Y yes))
+	ifeq (,$(filter $(BUILD_SHORT),Y yes y))
 		MULTILIBDIRS := $(shell echo $(MULTILIBDIRS) | sed -e 's/\S*short\S*/ /g')
 	endif
 endif
@@ -95,7 +128,7 @@ LIBDIRS=$(patsubst %,$(BUILDDIR)/%,$(MULTILIBDIRS))
 OBJDIRS=$(patsubst %,%/objs,$(LIBDIRS))
 
 COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
-AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
+AOBJS=$(patsubst %.S,%.o,$(ASRCS))
 OBJS=$(COBJS) $(AOBJS)
 
 IIO_OBJS = doprnt.o $(filter %printf.o, $(patsubst %,../%,$(OBJS)))
@@ -118,7 +151,7 @@ dirs::
 
 startups: $(STARTUPS)
 
-ifeq (,$(filter $(ONLY_68K),Y yes))
+ifeq (,$(filter $(ONLY_68K),Y yes y)$(filter $(ARCH_ARM),Y yes y))
 tests:
 	$(Q)echo make tests
 	$(Q)for i in $(TESTS); do if test -e tests/$$i/Makefile ; then $(MAKE) -C tests/$$i COMPILE_ELF=$(COMPILE_ELF) || { exit 1;} fi; done;
@@ -153,21 +186,21 @@ $(1)/objs/%.o:$(SRCDIR)/%.c
 	$(Q)echo "CC $$(@)"
 	$(Q)$(CC) -MMD -MP -MF $$(@:.o=.d) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 
-$(1)/objs/%.o:$(SRCDIR)/%.S
+$(1)/objs/%.o:$(ARCHDIR)/%.S
 	$(Q)echo "CC $$(@)"
 	$(Q)$(CC) -MMD -MP -MF $$(@:.o=.d) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 
-$(1)/%.o:$(SRCDIR)/%.S
+$(1)/%.o:$(ARCHDIR)/%.S
 	$(Q)echo "CC $$(@)"
 	$(Q)$(CC) -MMD -MP -MF $$(@:.o=.d) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 endef
 $(foreach DIR,$(LIBDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
 
-$(BUILDDIR)/crt0.o: $(SRCDIR)/crt0.S
+$(BUILDDIR)/crt0.o: $(ARCHDIR)/crt0.S
 	$(Q)echo "CC $(@)"
 	$(Q)$(CC) -MMD -MP -MF $(@:.o=.d) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
-$(BUILDDIR)/minicrt0.o: $(SRCDIR)/minicrt0.S
+$(BUILDDIR)/minicrt0.o: $(ARCHDIR)/minicrt0.S
 	$(Q)echo "CC $(@)"
 	$(Q)$(CC) -MMD -MP -MF $(@:.o=.d) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
@@ -272,7 +305,7 @@ endif
 ifneq (,$(PREFIX_FOR_STARTUP))
 install : install-startup
 install-startup:
-ifneq (,$(filter $(COMPILE_ELF),Y yes))
+ifneq (,$(filter $(COMPILE_ELF),Y yes y))
 	# the startup code is identical in all cases,
 	# but for ELF we still have to install separate versions,
 	# otherwise the linker will complain about incompatible machines

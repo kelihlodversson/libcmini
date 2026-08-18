@@ -1,0 +1,14 @@
+# mint_defconfig - default m68k-atari-mint (a.out) configuration
+#
+# This matches the Makefile's previous hardcoded defaults: every multilib
+# variant (68000, ColdFire, fastcall, soft-float, short) built as a.out
+# binaries. Every symbol below is already the Kconfig default; it is
+# listed explicitly so the configuration's intent survives a future
+# change to those defaults.
+
+ARCH_M68K=y
+BUILD_CF=y
+BUILD_FAST=y
+BUILD_SOFT_FLOAT=y
+BUILD_SHORT=y
+STDIO_MAP_NEWLINE=y

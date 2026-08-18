@@ -1,0 +1,124 @@
+#
+# Kconfig - top level configuration menu for libcmini
+#
+# This is distributed under the GPL, version 2 or at your option any later
+# version, as the configuration system itself is adapted from pTOS/EmuTOS'
+# tools/genconfig.py and tools/kconfig.mk (Copyright (C) 2017 The EmuTOS
+# development team). The configuration symbols and library code they
+# describe remain under libcmini's own license (see LICENSE.txt).
+#
+# The configuration system works like the one used by the Linux kernel:
+#
+#   make <name>_defconfig   load one of the ready-made configurations
+#   make menuconfig         edit the configuration interactively
+#   make                    build the configured library
+#
+# The result of the configuration is stored in the file '.config'.  From
+# there the build system generates obj/auto.conf (included by the Makefile)
+# and obj/autoconf.h -- reachable from C as <config.h>, for any source file
+# that needs to test a symbol from this file with #if, though none
+# currently do (see include/config.h for why).  Neither generated file
+# should ever be edited by hand.
+#
+
+mainmenu "libcmini Configuration"
+
+choice
+	prompt "Target architecture"
+	default ARCH_M68K
+	help
+	  Select the CPU architecture to build libcmini for.
+
+config ARCH_M68K
+	bool "m68k (Atari/MiNT)"
+	help
+	  The classic target: 68000-68060 and ColdFire, using the
+	  m68k-atari-mint(elf) cross toolchain.
+
+config ARCH_ARM
+	bool "ARM (pTOS)"
+	help
+	  ARM support for running GEMDOS programs under pTOS
+	  (https://github.com/kelihlodversson/pTOS), using the
+	  arm-none-eabi cross toolchain.
+
+	  The library itself builds cleanly with this selected: crt0 and
+	  the GEMDOS/BIOS/XBIOS trap layer (osbind.h/mintbind.h) are
+	  implemented, using function number in r0, arguments in
+	  registers, svc #1/#13/#14. A handful of rare BIOS/XBIOS calls
+	  needing more than 4 arguments (Rwabs/Lrwabs, Floprd/Flopwr/
+	  Flopfmt/Flopver, Rsconf) aren't available yet, pending a pTOS
+	  kernel-side ABI extension. This hasn't yet been tested end to
+	  end against a running pTOS, only built and, where practical,
+	  exercised in isolation under qemu-arm. See
+	  https://github.com/kelihlodversson/libcmini/issues/1 for
+	  details and progress.
+
+endchoice
+
+if ARCH_M68K
+
+config BUILD_CF
+	bool "Build ColdFire (m5475) variant"
+	default y
+	help
+	  Also build a multilib variant for the ColdFire m5475 CPU, in
+	  addition to the plain 68000 one.
+
+config BUILD_FAST
+	bool "Build -mfastcall variant"
+	default y
+	help
+	  Also build a multilib variant using the -mfastcall calling
+	  convention (contributed by Frederik Olsson). This requires a
+	  patched GCC with -mfastcall support
+	  (https://github.com/PeyloW/gcc-4.6.4); the Makefile silently
+	  drops this variant if the configured compiler does not support
+	  the flag.
+
+config BUILD_SOFT_FLOAT
+	bool "Build -msoft-float variant"
+	default y
+	help
+	  Also build a multilib variant using software floating point.
+
+config BUILD_SHORT
+	bool "Build -mshort variant"
+	default y
+	help
+	  Also build a multilib variant using 16-bit int (-mshort).
+
+config ONLY_68K
+	bool "Build only the bare 68000 multilib"
+	default n
+	help
+	  For faster iteration during development: skip every other
+	  multilib variant (ColdFire, fastcall, soft-float, short) and
+	  build only the plain 68000 one.
+
+config COMPILE_ELF
+	bool "Build ELF binaries (mintelf) instead of a.out (mint)"
+	default n
+	help
+	  Use the m68k-atari-mintelf- cross toolchain and produce ELF
+	  binaries, instead of the default m68k-atari-mint- a.out ones.
+
+endif # ARCH_M68K
+
+menu "stdio"
+
+config STDIO_WITH_LONG_LONG
+	bool "Support long long in the printf/scanf family"
+	default n
+	help
+	  Add code for 'long long' to the printf/scanf family of
+	  functions. At the moment this is known to fail.
+
+config STDIO_MAP_NEWLINE
+	bool "Map newline to CR/LF on output"
+	default y
+	help
+	  Translate '\n' to the Atari/DOS "\r\n" line ending when writing
+	  through stdio.
+
+endmenu

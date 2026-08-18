@@ -113,6 +113,44 @@ void _crtinit(void) {
 	 * Instead of calling Mshrink() and _setstack, this is done inline here,
 	 * because we cannot access the bp parameter after changing the stack anymore.
 	 */
+#if defined(__arm__)
+	{
+		/*
+		 * Explicit fixed registers (rather than plain "r" operands),
+		 * because the new-sp computation below writes to r0 before
+		 * bp/m are read into their call registers; if the compiler
+		 * had put either of them in r0 itself, that first write
+		 * would clobber it out from under us. r5/r6 are outside the
+		 * r0-r4 the call itself uses, so they can't collide. No
+		 * equivalent of the m68k "push some unused space for buggy
+		 * OS" headroom is needed here, see arch/arm/crt0.S.
+		 *
+		 * bp + m is only guaranteed 4-byte aligned (m is rounded to
+		 * that above, and bp's own allocator -- pTOS's alloc_tpa()/
+		 * ffit()/getmpb() -- only guarantees 4-byte alignment too;
+		 * see the comment on p_hitpa in pTOS's bdos/proc.c). AAPCS
+		 * requires sp to be 8-byte aligned at every public interface,
+		 * and _crtinit() calls straight into compiler-generated C
+		 * from here on, so round down explicitly rather than assume
+		 * bp + m already happens to land on an 8-byte boundary.
+		 */
+		register long __bp __asm__("r5") = (long)bp;
+		register long __m  __asm__("r6") = m;
+		__asm__ __volatile__(
+			"\tadd   r0, %[bp], %[m]\n" /* r0 = bp + m = new sp */
+			"\tbic   r0, r0, #7\n"      /* round down to 8-byte alignment (AAPCS) */
+			"\tmov   sp, r0\n"          /* set up the new stack to bp + m */
+			"\tmov   r3, %[m]\n"
+			"\tmov   r2, %[bp]\n"
+			"\tmov   r1, #0\n"
+			"\tmov   r0, #0x4a\n" /* Mshrink */
+			"\tsvc   #1\n"
+			: /* no outputs */
+			: [bp] "r" (__bp), [m] "r" (__m)
+			: "r0", "r1", "r2", "r3", "r4", "ip", "lr", "cc", "memory"
+		);
+	}
+#else
 	__asm__ __volatile__(
 		"\tmovel    %0,%%d0\n"
 		"\taddl     %1,%%d0\n"
@@ -128,6 +166,7 @@ void _crtinit(void) {
 		: "r"(bp), "r"(m)
 		: "d0", "d1", "d2", "a0", "a1", "a2", "cc" AND_MEMORY
 	);
+#endif
 
 	/* local variables must not be accessed after this point,
 	   because we just changed the stack */

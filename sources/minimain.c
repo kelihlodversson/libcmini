@@ -105,7 +105,32 @@ void _crtinit_noargs(void) {
 	 * and set up the new stack to bp + m.
 	 * Instead of calling Mshrink() and _setstack, this is done inline here,
 	 * because we cannot access the bp parameter after changing the stack anymore.
+	 *
+	 * See the identical block in main.c's _crtinit() for why the ARM and
+	 * m68k versions differ the way they do.
 	 */
+#if defined(__arm__)
+	{
+		/* bp + m is only guaranteed 4-byte aligned; see the identical
+		 * block in main.c's _crtinit() for why that isn't enough on
+		 * ARM and why the round-down below is needed. */
+		register long __bp __asm__("r5") = (long)bp;
+		register long __m  __asm__("r6") = m;
+		__asm__ __volatile__(
+			"\tadd   r0, %[bp], %[m]\n" /* r0 = bp + m = new sp */
+			"\tbic   r0, r0, #7\n"      /* round down to 8-byte alignment (AAPCS) */
+			"\tmov   sp, r0\n"          /* set up the new stack to bp + m */
+			"\tmov   r3, %[m]\n"
+			"\tmov   r2, %[bp]\n"
+			"\tmov   r1, #0\n"
+			"\tmov   r0, #0x4a\n" /* Mshrink */
+			"\tsvc   #1\n"
+			: /* no outputs */
+			: [bp] "r" (__bp), [m] "r" (__m)
+			: "r0", "r1", "r2", "r3", "r4", "ip", "lr", "cc", "memory"
+		);
+	}
+#else
 	__asm__ __volatile__(
 		"\tmovel    %0,%%d0\n"
 		"\taddl     %1,%%d0\n"
@@ -121,6 +146,7 @@ void _crtinit_noargs(void) {
 		: "r"(bp), "r"(m)
 		: "d0", "d1", "d2", "a0", "a1", "a2", "cc" AND_MEMORY
 	);
+#endif
 
 	/* local variables must not be accessed after this point,
 	   because we just changed the stack */
