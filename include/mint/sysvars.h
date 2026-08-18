@@ -4,6 +4,12 @@
 /*
  * Convention:
  * 	the address for each variable is defined.
+ *
+ * m68k only: every address below is the real TOS one, valid only when
+ * this program's kernel actually maps these variables at fixed,
+ * supervisor-only addresses -- which pTOS's ARM port does not do (see
+ * kelihlodversson/pTOS#219). On ARM, use Ssystem(S_GET*VAL/S_SET*VAL,
+ * ...) with these same addresses instead (mint/mintbind.h).
  */
 #ifndef _SYSVARS_H
 # define _SYSVARS_H 1
