@@ -39,6 +39,13 @@ endif
 ifneq (,$(filter $(ARCH_ARM),Y yes y))
 	ARCHDIR=$(SRCDIR)/arch/arm
 	CROSSPREFIX=arm-none-eabi-
+	# GEMDOS/BIOS/XBIOS's fixed low-memory system variables (osbind.h,
+	# sources/clock.c, ...) are read through a literal-integer-to-pointer
+	# cast, since there's no linker relationship between this library and
+	# whatever OS binary defines them at that address. gcc's -Warray-bounds
+	# flags every such cast as a "likely address zero" bug on ARM, which it
+	# is not: this is standard practice for fixed, ABI-documented addresses.
+	ARCH_CFLAGS=-Wno-array-bounds
 else
 	ARCHDIR=$(SRCDIR)/arch/m68k
 	ifneq (,$(filter $(COMPILE_ELF),Y yes y))
@@ -50,6 +57,7 @@ endif
 
 CFLAGS=\
 	   -Wall -Wstrict-prototypes -Wmissing-prototypes -Wdeclaration-after-statement -Werror \
+	   $(ARCH_CFLAGS) \
 	   -Os \
 	   -fomit-frame-pointer
 
