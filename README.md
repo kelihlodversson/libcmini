@@ -116,9 +116,8 @@ VERBOSE=yes make ONLY_68K=yes STDIO_MAP_NEWLINE=N
 
 `make ptos_arm_defconfig && make` builds `libcmini.a`/`libiiomini.a`/`crt0.o`/`minicrt0.o` for [pTOS](https://github.com/kelihlodversson/pTOS) on ARM, using the `arm-none-eabi-` cross toolchain (Ubuntu/Debian package it as `gcc-arm-none-eabi`). Unlike the m68k targets there's no multilib fan-out, so the outputs land directly under `build/` rather than in a per-variant subdirectory.
 
-The ARM port is functionally complete — GEMDOS/BIOS/XBIOS bindings, `crt0`, `setjmp`/`longjmp`, etc. — but two things are still open, tracked in [issue #1](https://github.com/kelihlodversson/libcmini/issues/1):
+The ARM port is functionally complete — GEMDOS/BIOS/XBIOS bindings (including the handful of calls needing more than 4 arguments — `Rwabs`/`Lrwabs`, `Floprd`/`Flopwr`/`Flopfmt`/`Flopver`, `Rsconf` — which pass a pointer to a packed argument struct instead), `crt0`, `setjmp`/`longjmp`, etc. — but one thing is still open, tracked in [issue #1](https://github.com/kelihlodversson/libcmini/issues/1):
 
-  * A handful of rare BIOS/XBIOS calls needing more than 4 arguments (`Rwabs`/`Lrwabs`, `Floprd`/`Flopwr`/`Flopfmt`/`Flopver`, `Rsconf`) aren't available yet, pending a pTOS kernel-side ABI extension. Calling one is a compile error, not a silently wrong call.
   * The port hasn't been tested end to end against a running pTOS yet — only built with the real toolchain and, where practical, exercised in isolation under `qemu-arm`.
 
 ## Installation
