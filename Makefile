@@ -60,13 +60,18 @@ ifneq (,$(filter $(STDIO_MAP_NEWLINE),Y yes))
 endif
 
 STARTUP= \
-	$(SRCDIR)/crt0.S
+	$(ARCHDIR)/crt0.S
 
 CSRCS= $(wildcard $(SRCDIR)/*.c)
 
-ASRCS= $(filter-out $(SRCDIR)/crt0.S $(SRCDIR)/minicrt0.S, $(wildcard $(SRCDIR)/*.S))
+# Architecture-specific assembly lives under sources/arch/<arch>/, kept apart
+# from the portable C sources directly under sources/ (see sources/arch/arm/
+# for the ARM equivalents, once ported). Object basenames must stay unique
+# across the whole tree since ASRCS/CSRCS feed into the same flat objs/ dir.
+ASRCS= $(filter-out crt0.S minicrt0.S, $(notdir $(wildcard $(ARCHDIR)/*.S)))
 
 SRCDIR=sources
+ARCHDIR=$(SRCDIR)/arch/m68k
 
 BUILDDIR=build
 
@@ -95,7 +100,7 @@ LIBDIRS=$(patsubst %,$(BUILDDIR)/%,$(MULTILIBDIRS))
 OBJDIRS=$(patsubst %,%/objs,$(LIBDIRS))
 
 COBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.c,%.o,$(CSRCS)))
-AOBJS=$(patsubst $(SRCDIR)/%.o,%.o,$(patsubst %.S,%.o,$(ASRCS)))
+AOBJS=$(patsubst %.S,%.o,$(ASRCS))
 OBJS=$(COBJS) $(AOBJS)
 
 IIO_OBJS = doprnt.o $(filter %printf.o, $(patsubst %,../%,$(OBJS)))
@@ -153,21 +158,21 @@ $(1)/objs/%.o:$(SRCDIR)/%.c
 	$(Q)echo "CC $$(@)"
 	$(Q)$(CC) -MMD -MP -MF $$(@:.o=.d) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 
-$(1)/objs/%.o:$(SRCDIR)/%.S
+$(1)/objs/%.o:$(ARCHDIR)/%.S
 	$(Q)echo "CC $$(@)"
 	$(Q)$(CC) -MMD -MP -MF $$(@:.o=.d) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 
-$(1)/%.o:$(SRCDIR)/%.S
+$(1)/%.o:$(ARCHDIR)/%.S
 	$(Q)echo "CC $$(@)"
 	$(Q)$(CC) -MMD -MP -MF $$(@:.o=.d) $$(CFLAGS) $(INCLUDE) -c $$< -o $$@
 endef
 $(foreach DIR,$(LIBDIRS),$(eval $(call CC_TEMPLATE,$(DIR))))
 
-$(BUILDDIR)/crt0.o: $(SRCDIR)/crt0.S
+$(BUILDDIR)/crt0.o: $(ARCHDIR)/crt0.S
 	$(Q)echo "CC $(@)"
 	$(Q)$(CC) -MMD -MP -MF $(@:.o=.d) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
-$(BUILDDIR)/minicrt0.o: $(SRCDIR)/minicrt0.S
+$(BUILDDIR)/minicrt0.o: $(ARCHDIR)/minicrt0.S
 	$(Q)echo "CC $(@)"
 	$(Q)$(CC) -MMD -MP -MF $(@:.o=.d) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
