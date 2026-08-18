@@ -102,33 +102,15 @@ __BEGIN_DECLS
 	/* Tos 1.4: Super(1L) : rets -1L if in super mode, 0L otherwise */
 
 /*
- * Safe binding to switch back from supervisor to user mode.
- * On TOS or EmuTOS, if the stack pointer has changed between Super(0)
- * and Super(oldssp), the resulting user stack pointer is wrong.
- * This bug does not occur with FreeMiNT.
- * So the safe way to return from supervisor to user mode is to backup
- * the stack pointer then restore it after the trap.
- * Sometimes, GCC optimizes the stack usage, so this matters.
+ * Safe binding to switch back from supervisor to user mode: defined
+ * in arch/m68k/osbind.h and arch/arm/osbind.h, not here, unlike the
+ * rest of the bindings in this file. On TOS or EmuTOS (m68k), if the
+ * stack pointer has changed between Super(0) and Super(oldssp), the
+ * resulting user stack pointer is wrong, so the safe way to return
+ * from supervisor to user mode is to back up the stack pointer and
+ * restore it after the trap -- which needs its own asm per
+ * architecture, not just different trap_1_* primitive calls.
  */
-#define SuperToUser(ptr)						\
-(void)__extension__							\
-({									\
-	register long retvalue __asm__("d0");				\
-	register long sp_backup;					\
-									\
-	__asm__ volatile						\
-	(								\
-		"movl	%%sp,%1\n\t"					\
-		"movl	%2,%%sp@-\n\t"					\
-		"movw	#0x20,%%sp@-\n\t"					\
-		"trap	#1\n\t"						\
-		"movl	%1,%%sp\n\t"					\
-	: "=r"(retvalue), "=&r"(sp_backup)	/* outputs */		\
-	: "g"((long)(ptr)) 			/* inputs */		\
-	: __CLOBBER_RETURN("d0") "d1", "d2", "a0", "a1", "a2", "cc"		\
-	  AND_MEMORY							\
-	);								\
-})
 
 #define	       Tgetdate()					       \
        (short)trap_1_w((short)(0x2A))

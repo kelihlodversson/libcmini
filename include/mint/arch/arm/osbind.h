@@ -386,4 +386,29 @@ static __inline__ long trap_14_wlwlw(short n, long a, short b, long c, short d)
  * Flopfmt/Flopver/Rsconf) are not available on ARM yet -- see the file
  * comment above. */
 
+/*
+ * Safe binding to switch back from supervisor to user mode. Mirrors
+ * the m68k version's defensiveness (see arch/m68k/osbind.h's own
+ * __m68k_SuperToUser): back up sp before the call and restore it
+ * after, all within one atomic asm block, so there's no window for
+ * the compiler to have changed sp between two separate C-level calls
+ * the way plain Super(0) followed by Super(oldssp) would allow. Not
+ * confirmed necessary on pTOS's ARM Super() (0x20) handler
+ * specifically, but costs nothing and matches the existing safety
+ * margin instead of assuming it away.
+ */
+static __inline__ void SuperToUser(long ptr)
+{
+	register long r0 __asm__("r0") = 0x20;
+	register long r1 __asm__("r1") = ptr;
+	register long sp_backup __asm__("r2");
+	__asm__ volatile (
+		"mov	r2, sp\n"
+		"svc	#1\n"
+		"mov	sp, r2\n"
+	: "+r"(r0), "=r"(sp_backup)
+	: "r"(r1)
+	: "r3", "r4", "ip", "lr", "cc", "memory");
+}
+
 #endif /* _MINT_ARCH_ARM_OSBIND_H */
