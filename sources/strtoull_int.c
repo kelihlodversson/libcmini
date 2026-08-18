@@ -16,6 +16,31 @@
 #define ISSPACE(c) ((c) == ' '||(c) == '\t')
 #define ISDIGIT(c) ((c) >= '0' && (c) <= '9')
 
+#if defined(__arm__)
+/*
+ * Portable equivalents of the m68k shift-add-with-carry-check loops
+ * below, using gcc's generic overflow-checking builtins instead of
+ * hand-rolled asm: both are answering exactly the question those
+ * builtins exist for (does the true unsigned product/sum fit in the
+ * result type), so this isn't a fallback with different semantics --
+ * it's the same check, just not hand-implemented.
+ */
+static inline
+unsigned long long __mul64 (long long in, long mul, char *overflow) {
+	unsigned long long ret;
+	if (__builtin_mul_overflow((unsigned long long)in, (unsigned long)mul, &ret))
+		*overflow = 1;
+	return ret;
+}
+
+static inline
+unsigned long long __add64 (long long in, long add, char *overflow) {
+	unsigned long long ret;
+	if (__builtin_add_overflow((unsigned long long)in, (unsigned long)add, &ret))
+		*overflow = 1;
+	return ret;
+}
+#else
 static inline
 unsigned long long __mul64 (long long in, long mul, char *overflow) {
 	unsigned long ret_lo;
@@ -29,7 +54,7 @@ unsigned long long __mul64 (long long in, long mul, char *overflow) {
 	".loop:						\n" /* }											*/
 	"	lsr.l		#1, %5		\n" /* mul >>= 1								*/
 	"	beq		.end			\n" /* if (mul == 0) goto end; 			*/
-	
+
 	"	add.l		%3, %3		\n" /* in <<= 1;								*/
 	"	addx.l	%4, %4		\n"
 	"	bcs		.overfl		\n" /* overflow?	goto overfl;			*/
@@ -63,6 +88,7 @@ unsigned long long __add64 (long long in, long add, char *overflow) {
 	);
 	return (unsigned long long)hi<<32 | lo;
 }
+#endif /* __arm__ */
 
 unsigned long long __strtoull_internal(const char *nptr, char **endptr, int base, int *sign) {
 	long long ret = 0LL;
