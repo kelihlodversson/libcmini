@@ -4,7 +4,7 @@ else
 	Q=
 endif
 
-ifneq (,$(filter $(COMPILE_ELF),Y yes))
+ifneq (,$(filter $(COMPILE_ELF),Y yes y))
 CC=m68k-atari-mintelf-gcc
 else
 CC=m68k-atari-mint-gcc

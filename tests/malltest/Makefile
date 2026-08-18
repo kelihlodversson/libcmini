@@ -6,7 +6,7 @@ endif
 
 CROSS=Y
 
-ifneq (,$(filter $(COMPILE_ELF),Y yes))
+ifneq (,$(filter $(COMPILE_ELF),Y yes y))
 CROSSBINDIR_IS_Y=m68k-atari-mintelf-
 else
 CROSSBINDIR_IS_Y=m68k-atari-mint-

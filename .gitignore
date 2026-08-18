@@ -7,3 +7,9 @@ Make.config.local
 *.d
 depend
 mapfile
+
+# Kconfig build configuration
+/.config
+/.config.old
+/defconfig
+/obj/
