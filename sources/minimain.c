@@ -111,10 +111,14 @@ void _crtinit_noargs(void) {
 	 */
 #if defined(__arm__)
 	{
+		/* bp + m is only guaranteed 4-byte aligned; see the identical
+		 * block in main.c's _crtinit() for why that isn't enough on
+		 * ARM and why the round-down below is needed. */
 		register long __bp __asm__("r5") = (long)bp;
 		register long __m  __asm__("r6") = m;
 		__asm__ __volatile__(
 			"\tadd   r0, %[bp], %[m]\n" /* r0 = bp + m = new sp */
+			"\tbic   r0, r0, #7\n"      /* round down to 8-byte alignment (AAPCS) */
 			"\tmov   sp, r0\n"          /* set up the new stack to bp + m */
 			"\tmov   r3, %[m]\n"
 			"\tmov   r2, %[bp]\n"

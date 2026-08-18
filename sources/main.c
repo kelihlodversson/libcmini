@@ -124,11 +124,21 @@ void _crtinit(void) {
 		 * r0-r4 the call itself uses, so they can't collide. No
 		 * equivalent of the m68k "push some unused space for buggy
 		 * OS" headroom is needed here, see arch/arm/crt0.S.
+		 *
+		 * bp + m is only guaranteed 4-byte aligned (m is rounded to
+		 * that above, and bp's own allocator -- pTOS's alloc_tpa()/
+		 * ffit()/getmpb() -- only guarantees 4-byte alignment too;
+		 * see the comment on p_hitpa in pTOS's bdos/proc.c). AAPCS
+		 * requires sp to be 8-byte aligned at every public interface,
+		 * and _crtinit() calls straight into compiler-generated C
+		 * from here on, so round down explicitly rather than assume
+		 * bp + m already happens to land on an 8-byte boundary.
 		 */
 		register long __bp __asm__("r5") = (long)bp;
 		register long __m  __asm__("r6") = m;
 		__asm__ __volatile__(
 			"\tadd   r0, %[bp], %[m]\n" /* r0 = bp + m = new sp */
+			"\tbic   r0, r0, #7\n"      /* round down to 8-byte alignment (AAPCS) */
 			"\tmov   sp, r0\n"          /* set up the new stack to bp + m */
 			"\tmov   r3, %[m]\n"
 			"\tmov   r2, %[bp]\n"
