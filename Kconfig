@@ -40,12 +40,17 @@ config ARCH_ARM
 	  (https://github.com/kelihlodversson/pTOS), using the
 	  arm-none-eabi cross toolchain.
 
-	  This target is a work in progress: the ARM crt0 and the
-	  GEMDOS/BIOS/XBIOS trap layer (osbind.h) are not implemented yet,
-	  so selecting this will not produce a working build. See
-	  https://github.com/kelihlodversson/libcmini/issues/1 for the
-	  ABI this will use (function number in r0, arguments in r1-r7,
-	  svc #1/#13/#14) and for progress.
+	  The library itself builds cleanly with this selected: crt0 and
+	  the GEMDOS/BIOS/XBIOS trap layer (osbind.h/mintbind.h) are
+	  implemented, using function number in r0, arguments in
+	  registers, svc #1/#13/#14. A handful of rare BIOS/XBIOS calls
+	  needing more than 4 arguments (Rwabs/Lrwabs, Floprd/Flopwr/
+	  Flopfmt/Flopver, Rsconf) aren't available yet, pending a pTOS
+	  kernel-side ABI extension. This hasn't yet been tested end to
+	  end against a running pTOS, only built and, where practical,
+	  exercised in isolation under qemu-arm. See
+	  https://github.com/kelihlodversson/libcmini/issues/1 for
+	  details and progress.
 
 endchoice
 
