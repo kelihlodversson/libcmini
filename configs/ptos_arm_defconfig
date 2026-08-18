@@ -1,0 +1,9 @@
+# ptos_arm_defconfig - ARM configuration for pTOS (work in progress)
+#
+# Selecting this does not yet produce a working build: the ARM crt0 and
+# the GEMDOS/BIOS/XBIOS trap layer (osbind.h) have not been written yet.
+# See https://github.com/kelihlodversson/libcmini/issues/1 for the
+# planned ABI and progress.
+
+ARCH_ARM=y
+STDIO_MAP_NEWLINE=y

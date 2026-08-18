@@ -1,0 +1,12 @@
+# mintelf_defconfig - m68k-atari-mintelf (ELF) configuration
+#
+# Same as mint_defconfig, but produces ELF binaries via the
+# m68k-atari-mintelf- cross toolchain instead of a.out.
+
+ARCH_M68K=y
+BUILD_CF=y
+BUILD_FAST=y
+BUILD_SOFT_FLOAT=y
+BUILD_SHORT=y
+COMPILE_ELF=y
+STDIO_MAP_NEWLINE=y
