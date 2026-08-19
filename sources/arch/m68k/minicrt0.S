@@ -61,6 +61,6 @@ __startprg:
 	movel	%a0, C_SYMBOL_NAME(_base)	| save it
 	movel	4(%a0), %d0	| get _base->p_hitpa
 	bclr	#0, %d0		| round off
-	movel	d0, %sp		| set stack (temporarily)
+	movel	%d0, %sp		| set stack (temporarily)
 	subl	#64, %sp		| see note in mintlib/setstack.S
 	jmp	C_SYMBOL_NAME(_crtinit_noargs)	| in minimain.c
