@@ -44,6 +44,14 @@ endif
 ifneq (,$(filter $(ARCH_ARM),Y yes y))
 	ARCHDIR=$(SRCDIR)/arch/arm
 	CROSSPREFIX=arm-none-eabi-
+	# The only ARM target so far is the Raspberry Pi port of pTOS, which
+	# uses AAPCS hard-float with the base VFP unit; every RPI target's
+	# FPU (vfp/neon-vfpv4/neon-fp-armv8) is call-ABI-compatible with
+	# plain vfp.  There is no multilib fan-out for ARM (single build
+	# variant, see MULTILIBDIRS below), so this is baked in rather than
+	# left to callers to pass via ARCH_CFLAGS -- "make ptos_arm_defconfig
+	# && make" should produce a usable library on its own.
+	ARM_ABI_CFLAGS=-mfloat-abi=hard -mfpu=vfp
 else
 	ARCHDIR=$(SRCDIR)/arch/m68k
 	ifneq (,$(filter $(COMPILE_ELF),Y yes y))
@@ -51,10 +59,12 @@ else
 	else
 	  	CROSSPREFIX=m68k-atari-mint-
 	endif
+	ARM_ABI_CFLAGS=
 endif
 
 CFLAGS=\
 	   -Wall -Wstrict-prototypes -Wmissing-prototypes -Wdeclaration-after-statement -Werror \
+	   $(ARM_ABI_CFLAGS) \
 	   $(ARCH_CFLAGS) \
 	   -Os \
 	   -fomit-frame-pointer
