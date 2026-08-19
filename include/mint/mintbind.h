@@ -263,13 +263,15 @@ typedef struct xattr
 /*
  * Ssystem() mode values. This is the subset pTOS actually implements
  * (see kelihlodversson/pTOS#219) -- S_INQUIRE, the mandatory "does
- * Ssystem() exist" discovery probe, plus the cookie jar and getting/
- * setting a system variable by its documented TOS address instead of
- * poking memory directly or going through Supexec(), which pTOS does
- * not support on ARM. Every other mode is unimplemented and returns
- * EINVFN.
+ * Ssystem() exist" discovery probe; S_OSNAME/S_OSVERSION; the cookie
+ * jar (get/set/del); and getting/setting a system variable by its
+ * documented TOS address instead of poking memory directly or going
+ * through Supexec(), which pTOS does not support on ARM. Every other
+ * mode is unimplemented and returns EINVFN.
  */
 #define S_INQUIRE       (-1)
+#define S_OSNAME        0x0000
+#define S_OSVERSION     0x0002
 #define S_GETCOOKIE     0x0008
 #define S_SETCOOKIE     0x0009
 #define S_GETLVAL       0x000a
@@ -278,6 +280,7 @@ typedef struct xattr
 #define S_SETLVAL       0x000d
 #define S_SETWVAL       0x000e
 #define S_SETBVAL       0x000f
+#define S_DELCOOKIE     0x001a
 #define Tgettimeofday(tvp, tzp) \
 		trap_1_wll(0x155, (long)(tvp), (long)(tzp))
 #define Tsettimeofday(tvp, tzp) \
