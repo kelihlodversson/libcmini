@@ -269,7 +269,7 @@ typedef struct xattr
  * not support on ARM. Every other mode is unimplemented and returns
  * EINVFN.
  */
-#define S_INQUIRE       0xffff
+#define S_INQUIRE       (-1)
 #define S_GETCOOKIE     0x0008
 #define S_SETCOOKIE     0x0009
 #define S_GETLVAL       0x000a
