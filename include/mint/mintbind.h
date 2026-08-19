@@ -262,11 +262,14 @@ typedef struct xattr
 
 /*
  * Ssystem() mode values. This is the subset pTOS actually implements
- * (see kelihlodversson/pTOS#219) -- the cookie jar, and getting/setting
- * a system variable by its documented TOS address instead of poking
- * memory directly or going through Supexec(), which pTOS does not
- * support on ARM. Every other mode is unimplemented and returns EINVFN.
+ * (see kelihlodversson/pTOS#219) -- S_INQUIRE, the mandatory "does
+ * Ssystem() exist" discovery probe, plus the cookie jar and getting/
+ * setting a system variable by its documented TOS address instead of
+ * poking memory directly or going through Supexec(), which pTOS does
+ * not support on ARM. Every other mode is unimplemented and returns
+ * EINVFN.
  */
+#define S_INQUIRE       0xffff
 #define S_GETCOOKIE     0x0008
 #define S_SETCOOKIE     0x0009
 #define S_GETLVAL       0x000a
