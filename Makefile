@@ -94,6 +94,19 @@ STARTUP= \
 
 CSRCS= $(wildcard $(SRCDIR)/*.c)
 
+# sources/generic/ holds portable-C fallbacks for functions m68k instead
+# gets from hand-written assembly (sources/arch/m68k/memset.S) or from
+# sources/purec/*.s (memmove, via memcpy.c's memmove alias below) --
+# neither of which exists for ARM. Pull them in for ARM only: adding
+# them unconditionally would duplicate-define memset against
+# arch/m68k/memset.S for m68k builds. See kelihlodversson/libcmini#5 --
+# these were the first real symbols an actual GEMDOS ARM binary
+# (pTOS's standalone emucon2.tos) needed at link time that toolchain-only
+# verification (#2) never exercised.
+ifneq (,$(filter $(ARCH_ARM),Y yes y))
+CSRCS+= $(wildcard $(SRCDIR)/generic/memset.c $(SRCDIR)/generic/memcpy.c)
+endif
+
 # Architecture-specific assembly lives under sources/arch/<arch>/, kept apart
 # from the portable C sources directly under sources/ (see sources/arch/arm/
 # for the ARM equivalents, once ported). Object basenames must stay unique
@@ -220,6 +233,10 @@ LIBDEPEND+=$$($1_OBJS)
 LIBSE+=$(1)/$(LIBC)
 
 $(shell mkdir -p $(1)/objs/iio)
+# sources/generic/*.o (see CSRCS above) land in objs/generic/ the same
+# way sources/iio/*.o land in objs/iio/ -- both need this explicit
+# mkdir since Make's pattern rules don't create their target directory.
+$(shell mkdir -p $(1)/objs/generic)
 $(1)_IIO_OBJS=$(patsubst %,$(1)/objs/iio/%,$(IIO_OBJS))
 $(1)/$(LIBIIO): $$($(1)_IIO_OBJS)
 	$(Q)echo "AR $$@"
