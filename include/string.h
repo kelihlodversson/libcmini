@@ -63,7 +63,6 @@ char *strlwr(char *str);
 char *strupr(char *str);
 
 char *basename(const char *filename);
-char *dirname(char *filename);
 
 int strcoll(const char* __s1, const char* __s2);
 size_t strxfrm(char* __dest, const char* __src, size_t __n);
