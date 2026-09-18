@@ -8,6 +8,7 @@
     understand and accept it fully.
 */
 
+#include <libgen.h>
 #include <string.h>
 #include "ctype.h"
 #include "lib.h"
