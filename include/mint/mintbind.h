@@ -65,6 +65,8 @@ typedef struct xattr
 
 #if defined(__arm__)
 # include <mint/arch/arm/mintbind.h>
+#elif defined(__x86_64__)
+# include <mint/arch/x86_64/mintbind.h>
 #else
 # include <mint/arch/m68k/mintbind.h>
 #endif
