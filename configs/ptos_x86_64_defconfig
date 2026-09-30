@@ -1,0 +1,12 @@
+# ptos_x86_64_defconfig - x86-64 ILP32 userspace configuration for pTOS
+#
+# The kernel runs in 64-bit mode (LP64), but userspace stays ILP32
+# (32-bit int/long/pointer, 64-bit long long) as documented in
+# pTOS issue #329 and doc/ptos.txt.
+#
+# This configuration builds libcmini for the x86-64 pTOS port's
+# ILP32 userspace ABI, matching what the kernel expects when launching
+# user programs via gouser() (bdos/arch/x86_64/rwa.c).
+
+ARCH_X86_64=y
+STDIO_MAP_NEWLINE=y

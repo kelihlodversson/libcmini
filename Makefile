@@ -52,6 +52,16 @@ ifneq (,$(filter $(ARCH_ARM),Y yes y))
 	# left to callers to pass via ARCH_CFLAGS -- "make ptos_arm_defconfig
 	# && make" should produce a usable library on its own.
 	ARM_ABI_CFLAGS=-mfloat-abi=hard -mfpu=vfp
+else ifneq (,$(filter $(ARCH_X86_64),Y yes y))
+	ARCHDIR=$(SRCDIR)/arch/x86_64
+	# x86-64 ILP32 userspace ABI: kernel is LP64, userspace is ILP32
+	# (32-bit int/long/pointer, 64-bit long long). Use the native x86_64
+	# toolchain with ILP32 ABI flags.
+	CROSSPREFIX=x86_64-linux-gnux32-
+	# ILP32 ABI: -mx32 selects the x32 psABI (ELFCLASS32 program headers,
+	# but genuine EM_X86_64 long-mode code). This is the userspace ABI
+	# pTOS expects (see pTOS issue #329).
+	ARM_ABI_CFLAGS=-mx32
 else
 	ARCHDIR=$(SRCDIR)/arch/m68k
 	ifneq (,$(filter $(COMPILE_ELF),Y yes y))
@@ -97,13 +107,13 @@ CSRCS= $(wildcard $(SRCDIR)/*.c)
 # sources/generic/ holds portable-C fallbacks for functions m68k instead
 # gets from hand-written assembly (sources/arch/m68k/memset.S) or from
 # sources/purec/*.s (memmove, via memcpy.c's memmove alias below) --
-# neither of which exists for ARM. Pull them in for ARM only: adding
-# them unconditionally would duplicate-define memset against
+# neither of which exists for ARM or x86_64. Pull them in for ARM/x86_64:
+# adding them unconditionally would duplicate-define memset against
 # arch/m68k/memset.S for m68k builds. See kelihlodversson/libcmini#5 --
 # these were the first real symbols an actual GEMDOS ARM binary
 # (pTOS's standalone emucon2.tos) needed at link time that toolchain-only
 # verification (#2) never exercised.
-ifneq (,$(filter $(ARCH_ARM),Y yes y))
+ifneq (,$(filter $(ARCH_ARM),Y yes y)$(filter $(ARCH_X86_64),Y yes y))
 CSRCS+= $(wildcard $(SRCDIR)/generic/memset.c $(SRCDIR)/generic/memcpy.c)
 endif
 
@@ -117,10 +127,10 @@ SRCDIR=sources
 
 BUILDDIR=build
 
-ifneq (,$(filter $(ONLY_68K),Y yes y)$(filter $(ARCH_ARM),Y yes y))
+ifneq (,$(filter $(ONLY_68K),Y yes y)$(filter $(ARCH_ARM),Y yes y)$(filter $(ARCH_X86_64),Y yes y))
 	# asume a multi-lib without flags ar m68000
 	# NOTE \s?$ is important - gcc on Windows outputs \r\n-lineendings but MSYS's grep only accept \n -> \s eats \r
-	# (also used for ARCH_ARM: there is no per-CPU multilib fan-out for it
+	# (also used for ARCH_ARM/x86_64: there is no per-CPU multilib fan-out for them
 	# yet, so just build the toolchain's default-flags variant)
 	MULTILIBDIRS := $(shell $(CC) -print-multi-lib | grep -E ';\s?$$' | sed -e "s/;.*//")
 else
