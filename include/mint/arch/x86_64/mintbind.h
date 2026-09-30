@@ -21,19 +21,19 @@
 
 static __inline__ long trap_1_wwl(short n, short a, long b)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi)
 	: "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wllw(short n, long a, long b, short c)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -41,12 +41,12 @@ static __inline__ long trap_1_wllw(short n, long a, long b, short c)
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wwlw(short n, short a, long b, short c)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -54,12 +54,12 @@ static __inline__ long trap_1_wwlw(short n, short a, long b, short c)
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wwww(short n, short a, short b, short c)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -67,12 +67,12 @@ static __inline__ long trap_1_wwww(short n, short a, short b, short c)
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wwwl(short n, short a, short b, long c)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -80,12 +80,12 @@ static __inline__ long trap_1_wwwl(short n, short a, short b, long c)
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wlll(short n, long a, long b, long c)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -93,12 +93,12 @@ static __inline__ long trap_1_wlll(short n, long a, long b, long c)
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wlllw(short n, long a, long b, long c, short d)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -107,12 +107,12 @@ static __inline__ long trap_1_wlllw(short n, long a, long b, long c, short d)
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx), "r"(r10)
 	: "r8", "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wllll(short n, long a, long b, long c, long d)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -121,12 +121,12 @@ static __inline__ long trap_1_wllll(short n, long a, long b, long c, long d)
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx), "r"(r10)
 	: "r8", "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wwllll(short n, short a, long b, long c, long d, long e)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -136,12 +136,12 @@ static __inline__ long trap_1_wwllll(short n, short a, long b, long c, long d, l
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx), "r"(r10), "r"(r8)
 	: "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wlllll(short n, long a, long b, long c, long d, long e)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -151,12 +151,12 @@ static __inline__ long trap_1_wlllll(short n, long a, long b, long c, long d, lo
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx), "r"(r10), "r"(r8)
 	: "r9", "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wwlllll(short n, short a, long b, long c, long d, long e, long f)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -167,12 +167,12 @@ static __inline__ long trap_1_wwlllll(short n, short a, long b, long c, long d, 
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx), "r"(r10), "r"(r8), "r"(r9)
 	: "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 static __inline__ long trap_1_wllllll(short n, long a, long b, long c, long d, long e, long f)
 {
-	register long rax __asm__("rax") = ((long)0x0001 << 32) | (n & 0xFFFF);
+	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
@@ -183,7 +183,7 @@ static __inline__ long trap_1_wllllll(short n, long a, long b, long c, long d, l
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx), "r"(r10), "r"(r8), "r"(r9)
 	: "rcx", "r11", "cc", "memory");
-	return rax;
+	return (long)rax;
 }
 
 #endif /* _MINT_ARCH_X86_64_MINTBIND_H */
