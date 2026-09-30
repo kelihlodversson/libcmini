@@ -508,13 +508,13 @@ static __inline__ void SuperToUser(long ptr)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | 0x20;
 	register long rdi __asm__("rdi") = ptr;
-	register long rsi __asm__("rsi");
+	register unsigned long long rsi __asm__("rsi");
 	__asm__ volatile (
-		"movq	%%rsp, %0\n"
+		"movq	%%rsp, %%rsi\n"
 		"syscall\n"
-		"movq	%0, %%rsp\n"
-	: "+a"(rax), "=r"(rsi)
-	: "D"(rdi)
+		"movq	%%rsi, %%rsp\n"
+	: "+a"(rax)
+	: "D"(rdi), "0"(rsi)
 	: "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
 }
 
