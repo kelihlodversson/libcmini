@@ -28,6 +28,8 @@ __BEGIN_DECLS
 
 #if defined(__arm__)
 # include <mint/arch/arm/osbind.h>
+#elif defined(__x86_64__)
+# include <mint/arch/x86_64/osbind.h>
 #else
 # include <mint/arch/m68k/osbind.h>
 #endif
