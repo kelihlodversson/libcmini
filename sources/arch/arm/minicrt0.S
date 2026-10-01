@@ -16,6 +16,7 @@
 	.globl	C_SYMBOL_NAME(_stksize)		@ long, defined by user or in stksiz.c
 
 	.extern	C_SYMBOL_NAME(_crtinit_noargs)	@ void _crtinit_noargs(void);
+	.extern	C_SYMBOL_NAME(_acc_main)		@ void _acc_main(void);
 
 	.syntax unified
 	.text
@@ -23,7 +24,9 @@
 	.globl	C_SYMBOL_NAME(_start)
 	.type	C_SYMBOL_NAME(_start), %function
 C_SYMBOL_NAME(_start):
-	ldr	r1, =C_SYMBOL_NAME(_base)
-	str	r0, [r1]		@ _base = basepage (r0)
+	ldr	r2, =C_SYMBOL_NAME(_base)
+	str	r0, [r2]		@ _base = basepage (r0)
 
+	cmp	r1, #1			@ pTOS ARM_ENTRY_ACCESSORY
+	beq	C_SYMBOL_NAME(_acc_main)
 	b	C_SYMBOL_NAME(_crtinit_noargs)
