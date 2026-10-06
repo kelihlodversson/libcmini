@@ -50,6 +50,7 @@ struct stat
 #define S_IFCHR  0020000
 #define S_IFIFO  0010000
 #define S_IFLNK  0120000 /* GEMDOS has no real symlinks; never actually set */
+#define __S_IFMEM 0140000 /* MiNT shared-memory or process-data object */
 
 #define S_ISREG(m)  (((m) & S_IFMT) == S_IFREG)
 #define S_ISDIR(m)  (((m) & S_IFMT) == S_IFDIR)
@@ -71,6 +72,10 @@ struct stat
 #define S_IWOTH  (S_IWGRP >> 3)
 #define S_IXOTH  (S_IXGRP >> 3)
 #define S_IRWXO  (S_IRWXG >> 3)
+
+#define S_ISUID  0004000
+#define S_ISGID  0002000
+#define S_ISVTX  0001000
 
 int fstat(int handle, struct stat *buff);
 int stat(const char *path, struct stat *buff);
