@@ -33,7 +33,7 @@
 static __inline__ long trap_1_w(short n)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
-	__asm__ volatile ("xorl %%edi, %%edi\n\txorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	:
 	: "rdi", "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -44,7 +44,7 @@ static __inline__ long trap_1_ww(short n, short a)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -55,7 +55,7 @@ static __inline__ long trap_1_wl(short n, long a)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -67,7 +67,7 @@ static __inline__ long trap_1_wlw(short n, long a, short b)
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
-	__asm__ volatile ("xorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi)
 	: "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -79,7 +79,7 @@ static __inline__ long trap_1_www(short n, short a, short b)
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
-	__asm__ volatile ("xorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi)
 	: "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -91,7 +91,7 @@ static __inline__ long trap_1_wll(short n, long a, long b)
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x0001 << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
-	__asm__ volatile ("xorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi)
 	: "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -104,7 +104,7 @@ static __inline__ long trap_1_wwll(short n, short a, long b, long c)
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
-	__asm__ volatile ("xorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -117,7 +117,7 @@ static __inline__ long trap_1_wlww(short n, long a, short b, short c)
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
-	__asm__ volatile ("xorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -171,7 +171,7 @@ static __inline__ long trap_1_wwwll(short n, short a, short b, long c, long d)
 static __inline__ long trap_13_w(short n)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000D << 32) | (n & 0xFFFF);
-	__asm__ volatile ("xorl %%edi, %%edi\n\txorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	:
 	: "rdi", "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -182,7 +182,7 @@ static __inline__ long trap_13_ww(short n, short a)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000D << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -193,7 +193,7 @@ static __inline__ long trap_13_wl(short n, long a)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000D << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -205,7 +205,7 @@ static __inline__ long trap_13_www(short n, short a, short b)
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000D << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
-	__asm__ volatile ("xorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi)
 	: "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -217,7 +217,7 @@ static __inline__ long trap_13_wwl(short n, short a, long b)
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000D << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
-	__asm__ volatile ("xorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi)
 	: "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -241,7 +241,7 @@ static __inline__ long trap_13_wwlwww(short n, short a, long b, short c, short d
 	args.drive = e;
 	args.lfirst = 0;
 
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -261,7 +261,7 @@ static __inline__ long trap_13_wwlwwwl(short n, short a, long b, short c, short 
 	args.drive = e;
 	args.lfirst = f;
 
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -273,7 +273,7 @@ static __inline__ long trap_13_wwlwwwl(short n, short a, long b, short c, short 
 static __inline__ long trap_14_w(short n)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000E << 32) | (n & 0xFFFF);
-	__asm__ volatile ("xorl %%edi, %%edi\n\txorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	:
 	: "rdi", "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -284,7 +284,7 @@ static __inline__ long trap_14_ww(short n, short a)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000E << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -295,7 +295,7 @@ static __inline__ long trap_14_wl(short n, long a)
 {
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000E << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -307,7 +307,7 @@ static __inline__ long trap_14_www(short n, short a, short b)
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000E << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
-	__asm__ volatile ("xorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi)
 	: "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -319,7 +319,7 @@ static __inline__ long trap_14_wwl(short n, short a, long b)
 	register unsigned long long rax __asm__("rax") = ((unsigned long long)0x000E << 32) | (n & 0xFFFF);
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
-	__asm__ volatile ("xorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi)
 	: "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -332,7 +332,7 @@ static __inline__ long trap_14_wllw(short n, long a, long b, short c)
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
-	__asm__ volatile ("xorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -345,7 +345,7 @@ static __inline__ long trap_14_wwll(short n, short a, long b, long c)
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
-	__asm__ volatile ("xorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -358,7 +358,7 @@ static __inline__ long trap_14_wwwl(short n, short a, short b, long c)
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
-	__asm__ volatile ("xorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -371,7 +371,7 @@ static __inline__ long trap_14_wlll(short n, long a, long b, long c)
 	register long rdi __asm__("rdi") = a;
 	register long rsi __asm__("rsi") = b;
 	register long rdx __asm__("rdx") = c;
-	__asm__ volatile ("xorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi), "S"(rsi), "d"(rdx)
 	: "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -440,7 +440,7 @@ static __inline__ long trap_14_wllwwwww(short n, long a, long b, short c, short 
 	args.side = f;
 	args.count = g;
 
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -467,7 +467,7 @@ static __inline__ long trap_14_wllwwwwwlw(short n, long a, long b, short c, shor
 	args.magic = h;
 	args.virgin = i;
 
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
@@ -491,7 +491,7 @@ static __inline__ long trap_14_wwwwwww(short n, short a, short b, short c, short
 	args.tsr = e;
 	args.scr = f;
 
-	__asm__ volatile ("xorl %%esi, %%esi\n\txorl %%edx, %%edx\n\txorl %%r10d, %%r10d\n\tsyscall"
+	__asm__ volatile ("syscall"
 	: "+a"(rax)
 	: "D"(rdi)
 	: "rsi", "rdx", "r10", "r8", "r9", "rcx", "r11", "cc", "memory");
