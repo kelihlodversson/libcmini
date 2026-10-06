@@ -130,6 +130,29 @@ void _crtinit_noargs(void) {
 			: "r0", "r1", "r2", "r3", "r4", "ip", "lr", "cc", "memory"
 		);
 	}
+#elif defined(__x86_64__)
+	{
+		/*
+		 * x32: bp is in %rsi and m in %rdx, the Mshrink(0, bp, m) argument
+		 * registers, so the new-sp computation can use %rax without
+		 * clobbering either. bp + m is rounded down to 16 bytes (SysV
+		 * ABI) before any compiler-generated code runs on the new stack.
+		 * The GEMDOS entry is rax = (1 << 32) | 0x4a, see
+		 * mint/arch/x86_64/osbind.h.
+		 */
+		__asm__ __volatile__(
+			"\tmovl    %%esi,%%eax\n"
+			"\taddl    %%edx,%%eax\n"
+			"\tandl    $-16,%%eax\n"
+			"\tmovq    %%rax,%%rsp\n"  /* set up the new stack to bp + m */
+			"\txorl    %%edi,%%edi\n"
+			"\tmovabsq $0x10000004a,%%rax\n" /* Mshrink */
+			"\tsyscall\n"
+			: /* no outputs */
+			: "S"(bp), "d"(m)
+			: "rax", "rdi", "rcx", "r10", "r11", "cc", "memory"
+		);
+	}
 #else
 	__asm__ __volatile__(
 		"\tmovel    %0,%%d0\n"

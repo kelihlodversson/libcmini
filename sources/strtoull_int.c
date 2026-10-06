@@ -16,7 +16,7 @@
 #define ISSPACE(c) ((c) == ' '||(c) == '\t')
 #define ISDIGIT(c) ((c) >= '0' && (c) <= '9')
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__x86_64__)
 /*
  * Portable equivalents of the m68k shift-add-with-carry-check loops
  * below, using gcc's generic overflow-checking builtins instead of
@@ -88,7 +88,7 @@ unsigned long long __add64 (long long in, long add, char *overflow) {
 	);
 	return (unsigned long long)hi<<32 | lo;
 }
-#endif /* __arm__ */
+#endif /* __arm__ || __x86_64__ */
 
 unsigned long long __strtoull_internal(const char *nptr, char **endptr, int base, int *sign) {
 	long long ret = 0LL;

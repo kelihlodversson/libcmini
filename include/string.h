@@ -80,7 +80,7 @@ size_t strxfrm(char* __dest, const char* __src, size_t __n);
  * definition whenever __OPTIMIZE__ is set (which -Os always sets),
  * regardless of whether there's m68k asm to back them with.
  */
-#if defined(__OPTIMIZE__) && !defined(__arm__)
+#if defined(__OPTIMIZE__) && !defined(__arm__) && !defined(__x86_64__)
 extern __inline __attribute__((__gnu_inline__)) size_t strlen(const char *scan)
 {
 	const char *start = scan;
@@ -106,7 +106,7 @@ extern __inline __attribute__((__gnu_inline__)) size_t strlen(const char *scan)
 #endif
 
 
-#if defined(__OPTIMIZE__) && !defined(__arm__)
+#if defined(__OPTIMIZE__) && !defined(__arm__) && !defined(__x86_64__)
 extern __inline __attribute__((__gnu_inline__)) int strcmp(const char *s1, const char *s2)
 {
 #ifdef __mcoldfire__
@@ -161,7 +161,7 @@ extern __inline __attribute__((__gnu_inline__)) int strcmp(const char *s1, const
 #endif
 
 
-#if !defined(__arm__)
+#if !defined(__arm__) && !defined(__x86_64__)
 extern __inline __attribute__((__gnu_inline__)) char *__inline_strcpy(char *dest, const char *src);
 extern __inline __attribute__((__gnu_inline__)) char *__inline_strcpy(char *dest, const char *src)
 {

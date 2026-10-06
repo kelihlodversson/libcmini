@@ -14,10 +14,10 @@
 
 #include "libc-symbols.h"
 
-	.globl	C_SYMBOL_NAME(_base)		@ BASEPAGE *, defined in globals.c
-	.globl	C_SYMBOL_NAME(_stksize)		@ long, defined by user or in stksiz.c
+	.globl	C_SYMBOL_NAME(_base) /* BASEPAGE *, defined in globals.c */
+	.globl	C_SYMBOL_NAME(_stksize) /* long, defined by user or in stksiz.c */
 
-	.extern	C_SYMBOL_NAME(_crtinit_noargs)	@ void _crtinit_noargs(void);
+	.extern	C_SYMBOL_NAME(_crtinit_noargs) /* void _crtinit_noargs(void); */
 
 	.text
 	.align	8

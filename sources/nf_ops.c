@@ -6,7 +6,7 @@
 #include <errno.h>
 #include <setjmp.h>
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__x86_64__)
 
 /*
  * NatFeats is an Atari-emulator-specific mechanism (Hatari, ARAnyM, Steem)
@@ -395,4 +395,4 @@ long nf_get_id(const char *feature_name)
 	return id;
 }
 
-#endif /* __arm__ */
+#endif /* __arm__ || __x86_64__ */
