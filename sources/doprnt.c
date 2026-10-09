@@ -565,6 +565,7 @@ doprnt(int (*addchar)(int, void*), void* stream, const char* sfmt, va_list ap)
                     {
                         const char* numbers = "0123456789abcdef";
                         const char* prefix = NULL;
+                        char prefix_buf[3];     /* not a string literal: those are read-only on pTOS x86-64 */
                         int len_prefix = 0;
 
                         switch (do_long) {
@@ -661,8 +662,10 @@ doprnt(int (*addchar)(int, void*), void* stream, const char* sfmt, va_list ap)
                             switch (fmt) {
                                 case 'X':
                                 case 'x':
-                                    prefix = "x0";
-                                    *(char*)prefix = fmt;
+                                    prefix_buf[0] = fmt;
+                                    prefix_buf[1] = '0';
+                                    prefix_buf[2] = '\0';
+                                    prefix = prefix_buf;
                                     len_prefix = 2;
                                     break;
 

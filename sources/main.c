@@ -69,6 +69,17 @@ void _crtinit(void) {
 	/* m = # bytes used by environment + args */
 	m = parseargs(bp);
 
+#if defined(__x86_64__)
+	/*
+	 * pTOS on x86-64 does not hand the program a TPA to carve a stack out
+	 * of: the process starts on a private stack of its own, Malloc()
+	 * memory is private pages, and the zeroed startup area after the bss
+	 * is where parseargs() put argv and environ.  There is no memory to
+	 * shrink and no stack to move.
+	 */
+	(void)m;
+	(void)freemem;
+#else
 	/* make m the total number of bytes required by program sans stack/heap */
 	m += (bp->p_tlen + bp->p_dlen + bp->p_blen + sizeof(BASEPAGE));
 	m = (m + 3L) & (~3L);
@@ -191,6 +202,8 @@ void _crtinit(void) {
 	);
 #endif
 
+#endif
+
 	/* local variables must not be accessed after this point,
 	   because we just changed the stack */
 
@@ -207,9 +220,11 @@ void _crtinit(void) {
 	_main(__libc_argc, __libc_argv, environ);
 	__builtin_unreachable();
 
+#if !defined(__x86_64__)
 notenough:
 	Pterm(-1);
 	__builtin_unreachable();
+#endif
 }
 
 /*
