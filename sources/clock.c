@@ -15,7 +15,7 @@
  * by the same documented address, no supervisor mode required. See
  * kelihlodversson/pTOS#219.
  */
-#if defined(__arm__)
+#if defined(__arm__) || defined(__x86_64__)
 
 clock_t clock(void)
 {

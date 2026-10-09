@@ -62,6 +62,17 @@ void _crtinit_noargs(void) {
 	/* m = # bytes used by environment + args */
 	m = parseargs(bp);
 
+#if defined(__x86_64__)
+	/*
+	 * pTOS on x86-64 does not hand the program a TPA to carve a stack out
+	 * of: the process starts on a private stack of its own, Malloc()
+	 * memory is private pages, and the zeroed startup area after the bss
+	 * is where parseargs() put argv and environ.  There is no memory to
+	 * shrink and no stack to move.
+	 */
+	(void)m;
+	(void)freemem;
+#else
 	/* make m the total number of bytes required by program sans stack/heap */
 	m += (bp->p_tlen + bp->p_dlen + bp->p_blen + sizeof(BASEPAGE));
 	m = (m + 3L) & (~3L);
@@ -130,6 +141,29 @@ void _crtinit_noargs(void) {
 			: "r0", "r1", "r2", "r3", "r4", "ip", "lr", "cc", "memory"
 		);
 	}
+#elif defined(__x86_64__)
+	{
+		/*
+		 * x32: bp is in %rsi and m in %rdx, the Mshrink(0, bp, m) argument
+		 * registers, so the new-sp computation can use %rax without
+		 * clobbering either. bp + m is rounded down to 16 bytes (SysV
+		 * ABI) before any compiler-generated code runs on the new stack.
+		 * The GEMDOS entry is rax = (1 << 32) | 0x4a, see
+		 * mint/arch/x86_64/osbind.h.
+		 */
+		__asm__ __volatile__(
+			"\tmovl    %%esi,%%eax\n"
+			"\taddl    %%edx,%%eax\n"
+			"\tandl    $-16,%%eax\n"
+			"\tmovq    %%rax,%%rsp\n"  /* set up the new stack to bp + m */
+			"\txorl    %%edi,%%edi\n"
+			"\tmovabsq $0x10000004a,%%rax\n" /* Mshrink */
+			"\tsyscall\n"
+			: /* no outputs */
+			: "S"(bp), "d"(m)
+			: "rax", "rdi", "rcx", "r10", "r11", "cc", "memory"
+		);
+	}
 #else
 	__asm__ __volatile__(
 		"\tmovel    %0,%%d0\n"
@@ -148,6 +182,8 @@ void _crtinit_noargs(void) {
 	);
 #endif
 
+#endif
+
 	/* local variables must not be accessed after this point,
 	   because we just changed the stack */
 
@@ -159,8 +195,10 @@ void _crtinit_noargs(void) {
 	_main(__libc_argc, __libc_argv, environ);
 	/* not reached normally */
 
+#if !defined(__x86_64__)
 notenough:
 	Pterm(-1);
+#endif
 }
 
 /*
