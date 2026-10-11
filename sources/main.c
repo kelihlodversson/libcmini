@@ -55,6 +55,44 @@ static void _main (int _argc, char **_argv, char **_envp) {
 #pragma GCC optimize "-fomit-frame-pointer"
 #pragma GCC optimize "-fno-defer-pop"
 
+#if defined(__x86_64__)
+/*
+ * pTOS on x86-64 (the x32 ABI) starts a process with everything a TOS program
+ * otherwise has to arrange for itself: it runs on a private stack that the
+ * kernel provides and grows on demand, and Malloc() memory is address space of
+ * its own that is backed when it is touched.  There is no TPA to carve a stack
+ * out of and nothing to give back with Mshrink().
+ *
+ * _stksize has a different job here: if the program sets it to more than 0, it
+ * is the number of bytes the stack may grow to, passed to Psetlimit() (the
+ * default stack is 16 MiB).  0 or less keeps the default, and 0 is what
+ * stksiz.c gives it.
+ *
+ * Program header flags are no part of this: they belong to the TOS executable
+ * format, which an ELF program does not have.  What is left is what every C
+ * program needs: argv and environ (built in the startup area after the bss),
+ * the constructors, and main().
+ */
+void _crtinit(void) {
+	/* its an application */
+	_app = 1;
+
+	(void)parseargs(_base);
+
+	if (_stksize > 0L)
+		(void)Psetlimit(PSETLIMIT_STACK, _stksize);
+
+#ifdef __GCC_HAVE_INITFINI_ARRAY_SUPPORT
+	/* main() won't call __main() for global constructors, so do it here. */
+	__main();
+#endif
+
+	_main(__libc_argc, __libc_argv, environ);
+	__builtin_unreachable();
+}
+#endif
+
+#if !defined(__x86_64__)
 void _crtinit(void) {
 
 	BASEPAGE *bp;
@@ -188,6 +226,7 @@ notenough:
 	Pterm(-1);
 	__builtin_unreachable();
 }
+#endif /* !__x86_64__ */
 
 /*
  * parseargs(bp): parse the environment and arguments pointed to by the

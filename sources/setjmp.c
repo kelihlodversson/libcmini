@@ -51,6 +51,51 @@ __attribute__((naked)) void longjmp(jmp_buf buf, int val)
 	);
 }
 
+#elif defined(__x86_64__)
+
+/*
+ * x32: callee-saved %rbx, %rbp, %r12-%r15, then the caller's %rsp and
+ * return address, 8 bytes each (jmp_buf is 16 longs, see setjmp.h). The
+ * pointer arrives zero-extended in %rdi, so it can be used as is.
+ */
+__asm__(
+	"\t.text\n"
+	"\t.globl setjmp\n"
+	"\t.type setjmp, @function\n"
+	"setjmp:\n"
+	"\tmovq %rbx, 0(%rdi)\n"
+	"\tmovq %rbp, 8(%rdi)\n"
+	"\tmovq %r12, 16(%rdi)\n"
+	"\tmovq %r13, 24(%rdi)\n"
+	"\tmovq %r14, 32(%rdi)\n"
+	"\tmovq %r15, 40(%rdi)\n"
+	"\tleaq 8(%rsp), %rdx\n"       /* sp as it is after setjmp returns */
+	"\tmovq %rdx, 48(%rdi)\n"
+	"\tmovq (%rsp), %rdx\n"        /* return address */
+	"\tmovq %rdx, 56(%rdi)\n"
+	"\txorl %eax, %eax\n"
+	"\tret\n"
+	"\t.size setjmp, .-setjmp\n"
+	"\t.globl longjmp\n"
+	"\t.type longjmp, @function\n"
+	"longjmp:\n"
+	"\tmovl %esi, %eax\n"
+	"\ttestl %eax, %eax\n"
+	"\tjnz 1f\n"
+	"\tmovl $1, %eax\n"          /* val == 0 returns 1 */
+	"1:\n"
+	"\tmovq 0(%rdi), %rbx\n"
+	"\tmovq 8(%rdi), %rbp\n"
+	"\tmovq 16(%rdi), %r12\n"
+	"\tmovq 24(%rdi), %r13\n"
+	"\tmovq 32(%rdi), %r14\n"
+	"\tmovq 40(%rdi), %r15\n"
+	"\tmovq 56(%rdi), %rdx\n"
+	"\tmovq 48(%rdi), %rsp\n"
+	"\tjmp *%rdx\n"
+	"\t.size longjmp, .-longjmp\n"
+);
+
 #else
 
 int setjmp(jmp_buf buf)
@@ -94,7 +139,7 @@ void longjmp(jmp_buf buf, int val)
 	__builtin_unreachable();
 }
 
-#endif /* __arm__ */
+#endif /* __arm__ || __x86_64__ */
 
 int sigsetjmp(jmp_buf buf, int mask)
 {

@@ -54,6 +54,23 @@ config ARCH_ARM
 	  https://github.com/kelihlodversson/libcmini/issues/1 for
 	  details and progress.
 
+config ARCH_X86_64
+	bool "x86-64 ILP32 (pTOS)"
+	help
+	  x86-64 support for running GEMDOS programs under pTOS
+	  (https://github.com/kelihlodversson/pTOS), using the x86_64
+	  toolchain with ILP32 userspace ABI.
+
+	  The kernel runs in 64-bit mode (LP64), but userspace stays ILP32
+	  (32-bit int/long/pointer, 64-bit long long) as documented in
+	  pTOS issue #329 and doc/ptos.txt. The library itself builds cleanly
+	  with this selected: crt0 and the GEMDOS/BIOS/XBIOS trap layer
+	  (osbind.h/mintbind.h) are implemented, using the syscall instruction
+	  for GEMDOS calls. This hasn't yet been tested end to end against a
+	  running pTOS, only built and, where practical, exercised in
+	  isolation. See https://github.com/kelihlodversson/pTOS/issues/329
+	  for details and progress.
+
 endchoice
 
 if ARCH_M68K

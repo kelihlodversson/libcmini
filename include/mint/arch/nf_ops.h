@@ -28,7 +28,7 @@ struct nf_ops
 	long res[3];
 };
 
-#ifdef __linux__
+#if defined(__linux__) && !defined(__x86_64__)
 #include <asm/io.h>
 #else
 #define virt_to_phys(a) a

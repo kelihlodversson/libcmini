@@ -47,6 +47,27 @@ static void _main (int _argc, char **_argv, char **_envp) {
 #pragma GCC optimize "-fomit-frame-pointer"
 #pragma GCC optimize "-fno-defer-pop"
 
+#if defined(__x86_64__)
+/*
+ * The minimal startup on pTOS x86-64: like _crtinit() in main.c, the kernel
+ * provides the stack and the memory, so there is no TPA to shrink.  _stksize,
+ * if more than 0, is the stack size passed to Psetlimit().
+ */
+void _crtinit_noargs(void) {
+	/* its an application */
+	_app = 1;
+
+	(void)parseargs(_base);
+
+	if (_stksize > 0L)
+		(void)Psetlimit(PSETLIMIT_STACK, _stksize);
+
+	_main(__libc_argc, __libc_argv, environ);
+	__builtin_unreachable();
+}
+#endif
+
+#if !defined(__x86_64__)
 void _crtinit_noargs(void) {
 	extern void etext(void);	/* a "function" to fake out pc-rel addressing */
 
@@ -148,6 +169,7 @@ void _crtinit_noargs(void) {
 	);
 #endif
 
+
 	/* local variables must not be accessed after this point,
 	   because we just changed the stack */
 
@@ -162,6 +184,7 @@ void _crtinit_noargs(void) {
 notenough:
 	Pterm(-1);
 }
+#endif /* !__x86_64__ */
 
 /*
  * parseargs(bp): parse the environment and arguments pointed to by the

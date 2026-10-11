@@ -7,6 +7,8 @@ extern "C" {
 
 #if defined(__arm__)
 typedef long jmp_buf[8 + 1 + 1]; /* r4-r11, sp, lr */
+#elif defined(__x86_64__)
+typedef long jmp_buf[16]; /* rbx, rbp, r12-r15, rsp, rip (8 bytes each) */
 #else
 typedef long jmp_buf[6 + 1 + 6 + 8 * 3]; /* 6 data regs, retaddr, 6 addr regs, 8 fpu regs */
 #endif
