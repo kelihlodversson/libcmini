@@ -55,6 +55,35 @@ static void _main (int _argc, char **_argv, char **_envp) {
 #pragma GCC optimize "-fomit-frame-pointer"
 #pragma GCC optimize "-fno-defer-pop"
 
+#if defined(__x86_64__)
+/*
+ * pTOS on x86-64 (the x32 ABI) starts a process with everything a TOS program
+ * otherwise has to arrange for itself: it runs on a private stack that the
+ * kernel provides and grows on demand, and Malloc() memory is address space of
+ * its own that is backed when it is touched.  There is no TPA to carve a stack
+ * out of and nothing to give back with Mshrink(), so there is no _stksize
+ * either.  Program header flags are no part of this: they belong to the TOS
+ * executable format, which an ELF program does not have.  What is left is what
+ * every C program needs: argv and environ (built in the startup area after the
+ * bss), the constructors, and main().
+ */
+void _crtinit(void) {
+	/* its an application */
+	_app = 1;
+
+	(void)parseargs(_base);
+
+#ifdef __GCC_HAVE_INITFINI_ARRAY_SUPPORT
+	/* main() won't call __main() for global constructors, so do it here. */
+	__main();
+#endif
+
+	_main(__libc_argc, __libc_argv, environ);
+	__builtin_unreachable();
+}
+#endif
+
+#if !defined(__x86_64__)
 void _crtinit(void) {
 
 	BASEPAGE *bp;
@@ -69,17 +98,6 @@ void _crtinit(void) {
 	/* m = # bytes used by environment + args */
 	m = parseargs(bp);
 
-#if defined(__x86_64__)
-	/*
-	 * pTOS on x86-64 does not hand the program a TPA to carve a stack out
-	 * of: the process starts on a private stack of its own, Malloc()
-	 * memory is private pages, and the zeroed startup area after the bss
-	 * is where parseargs() put argv and environ.  There is no memory to
-	 * shrink and no stack to move.
-	 */
-	(void)m;
-	(void)freemem;
-#else
 	/* make m the total number of bytes required by program sans stack/heap */
 	m += (bp->p_tlen + bp->p_dlen + bp->p_blen + sizeof(BASEPAGE));
 	m = (m + 3L) & (~3L);
@@ -161,29 +179,6 @@ void _crtinit(void) {
 			: "r0", "r1", "r2", "r3", "r4", "ip", "lr", "cc", "memory"
 		);
 	}
-#elif defined(__x86_64__)
-	{
-		/*
-		 * x32: bp is in %rsi and m in %rdx, the Mshrink(0, bp, m) argument
-		 * registers, so the new-sp computation can use %rax without
-		 * clobbering either. bp + m is rounded down to 16 bytes (SysV
-		 * ABI) before any compiler-generated code runs on the new stack.
-		 * The GEMDOS entry is rax = (1 << 32) | 0x4a, see
-		 * mint/arch/x86_64/osbind.h.
-		 */
-		__asm__ __volatile__(
-			"\tmovl    %%esi,%%eax\n"
-			"\taddl    %%edx,%%eax\n"
-			"\tandl    $-16,%%eax\n"
-			"\tmovq    %%rax,%%rsp\n"  /* set up the new stack to bp + m */
-			"\txorl    %%edi,%%edi\n"
-			"\tmovabsq $0x10000004a,%%rax\n" /* Mshrink */
-			"\tsyscall\n"
-			: /* no outputs */
-			: "S"(bp), "d"(m)
-			: "rax", "rdi", "rcx", "r10", "r11", "cc", "memory"
-		);
-	}
 #else
 	__asm__ __volatile__(
 		"\tmovel    %0,%%d0\n"
@@ -202,8 +197,6 @@ void _crtinit(void) {
 	);
 #endif
 
-#endif
-
 	/* local variables must not be accessed after this point,
 	   because we just changed the stack */
 
@@ -220,12 +213,11 @@ void _crtinit(void) {
 	_main(__libc_argc, __libc_argv, environ);
 	__builtin_unreachable();
 
-#if !defined(__x86_64__)
 notenough:
 	Pterm(-1);
 	__builtin_unreachable();
-#endif
 }
+#endif /* !__x86_64__ */
 
 /*
  * parseargs(bp): parse the environment and arguments pointed to by the
