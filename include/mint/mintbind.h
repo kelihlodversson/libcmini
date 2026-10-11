@@ -147,6 +147,10 @@ typedef struct xattr
 		(int)trap_1_wl(0x11e, (long)(rsp))
 #define Psetlimit(i, val)					\
 		trap_1_wwl(0x11f, (short)(i), (long)(val))
+/* pTOS (x86-64) extends Psetlimit() with a mode for the stack: the number of
+ * bytes of address space it may grow to (0: the default, a negative value only
+ * asks); the old value is returned.  The other modes are MiNT's. */
+#define PSETLIMIT_STACK 0x100
 
 #define Talarm(sec)						\
 		trap_1_wl(0x120, (long)(sec))

@@ -13,7 +13,8 @@
  *    (x86_64_trap_dispatch) which extracts it from the syscall frame
  *  - the kernel starts the process on a private stack of its own (16 MiB of
  *    address space, its pages backed as they are touched), so there is no
- *    stack to set up here, no TPA and no Mshrink(); see _crtinit() in main.c
+ *    stack to set up here, no TPA and no Mshrink(); _stksize, if the program
+ *    sets it, is passed to Psetlimit() (see _crtinit() in main.c)
  *  - there is no equivalent of the 64-byte "buggy OS reads past the top
  *    of the stack on every trap" workaround arch/m68k/setstack.S talks
  *    about: pTOS's GEMDOS syscall entry (bios/arch/x86_64/trapasm.S) takes
@@ -26,6 +27,7 @@
 #include "libc-symbols.h"
 
 	.globl	C_SYMBOL_NAME(_base) /* BASEPAGE *, defined in globals.c */
+	.globl	C_SYMBOL_NAME(_stksize) /* long, defined by user or in stksiz.c */
 
 	.extern	C_SYMBOL_NAME(_crtinit) /* void _crtinit(void); */
 

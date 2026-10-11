@@ -50,14 +50,17 @@ static void _main (int _argc, char **_argv, char **_envp) {
 #if defined(__x86_64__)
 /*
  * The minimal startup on pTOS x86-64: like _crtinit() in main.c, the kernel
- * provides the stack and the memory, so there is no TPA to shrink and no
- * _stksize.
+ * provides the stack and the memory, so there is no TPA to shrink.  _stksize,
+ * if more than 0, is the stack size passed to Psetlimit().
  */
 void _crtinit_noargs(void) {
 	/* its an application */
 	_app = 1;
 
 	(void)parseargs(_base);
+
+	if (_stksize > 0L)
+		(void)Psetlimit(PSETLIMIT_STACK, _stksize);
 
 	_main(__libc_argc, __libc_argv, environ);
 	__builtin_unreachable();
