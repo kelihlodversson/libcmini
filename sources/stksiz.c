@@ -15,4 +15,10 @@
  * GCC 4 and set it back to the way it was, but that will stop GCC 2.x
  * compiling this code.
  */
+#ifdef __x86_64__
+/* pTOS on x86-64 starts a process on a stack of its own: more than 0 asks for
+ * that many bytes of stack through Psetlimit(), 0 keeps the default size */
+long _stksize = 0L;
+#else
 long _stksize = MINKEEP;
+#endif
