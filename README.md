@@ -120,6 +120,15 @@ The ARM port is functionally complete — GEMDOS/BIOS/XBIOS bindings (including 
 
   * The port hasn't been tested end to end against a running pTOS yet — only built with the real toolchain and, where practical, exercised in isolation under `qemu-arm`.
 
+### x32 / pTOS
+
+`ptos_x86_64_defconfig` selects the x32 ABI (32-bit pointers and longs in
+64-bit mode). Both `crt0.o` and `minicrt0.o` accept the pTOS entry contract:
+RDI holds the basepage, RSI is 0 for a program or 1 for an accessory, and
+RSP+8 is divisible by 16. Accessory entry initializes `_app=0` before `main`.
+Both entry types retain the private stack supplied by pTOS and apply a
+positive `_stksize` through `Psetlimit(PSETLIMIT_STACK, ...)`.
+
 ## Installation
 
 The basic installation command is `make install`. The default install

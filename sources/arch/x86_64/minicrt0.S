@@ -27,6 +27,8 @@ C_SYMBOL_NAME(_start):
 	/* %rdi = basepage pointer (from kernel's gouser() via syscall dispatch) */
 	/* ILP32: _base is 32-bit, use movl with %edi to avoid writing 8 bytes */
 	movl	%edi, C_SYMBOL_NAME(_base)(%rip)
+	cmpl	$1, %esi
+	je	C_SYMBOL_NAME(_acc_main)
 
 	/* Tail-call to C-level initialization (no args) */
 	jmp	C_SYMBOL_NAME(_crtinit_noargs)

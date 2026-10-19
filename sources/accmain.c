@@ -38,6 +38,12 @@ static void _main (int _argc, char **_argv, char **_envp)
 #pragma GCC optimize "-fomit-frame-pointer"
 
 void _acc_main(void) {
+#if defined(__x86_64__) && defined(__ILP32__)
+	/* pTOS supplies a private, aligned user stack.  Malloc memory is not
+	 * an executable process stack and x32 must never switch to it. */
+	if (_stksize > 0)
+		(void)Psetlimit(PSETLIMIT_STACK, _stksize);
+#else
 	void *_heapbase;
 	
 	if (_stksize == 0 || _stksize == -1L)
@@ -59,6 +65,7 @@ void _acc_main(void) {
 
 	/* local variables must not be accessed after this point,
 	   because we just changed the stack */
+#endif
 
 	/* this is an accessory */
 	_app = 0;
