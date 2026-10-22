@@ -47,13 +47,15 @@ static void _main (int _argc, char **_argv, char **_envp) {
 #pragma GCC optimize "-fomit-frame-pointer"
 #pragma GCC optimize "-fno-defer-pop"
 
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(__arm__)
 /*
  * The minimal startup on pTOS x86-64: like _crtinit() in main.c, the kernel
  * provides the stack and the memory, so there is no TPA to shrink.  _stksize,
- * if more than 0, is the stack size passed to Psetlimit().
+ * if more than 0, is the stack size passed to Psetlimit().  On ARM it is the
+ * startup of a process in an address space of its own, which the kernel starts
+ * on a private stack (see _crtinit() in main.c).
  */
-void _crtinit_noargs(void) {
+static void crtinit_private_stack(void) {
 	/* its an application */
 	_app = 1;
 
@@ -64,6 +66,12 @@ void _crtinit_noargs(void) {
 
 	_main(__libc_argc, __libc_argv, environ);
 	__builtin_unreachable();
+}
+#endif
+
+#if defined(__x86_64__)
+void _crtinit_noargs(void) {
+	crtinit_private_stack();
 }
 #endif
 
@@ -79,6 +87,17 @@ void _crtinit_noargs(void) {
 	_app = 1;
 
 	bp = _base;
+
+#if defined(__arm__)
+	/* a private stack, far from the TPA: no TPA to carve a stack out of (main.c) */
+	{
+		long sp_now;
+
+		__asm__ __volatile__("mov %0, sp" : "=r" (sp_now));
+		if (sp_now > (long)bp->p_hitpa || sp_now < (long)bp)
+			crtinit_private_stack();
+	}
+#endif
 
 	/* m = # bytes used by environment + args */
 	m = parseargs(bp);
