@@ -47,7 +47,7 @@ static void _main (int _argc, char **_argv, char **_envp) {
 #pragma GCC optimize "-fomit-frame-pointer"
 #pragma GCC optimize "-fno-defer-pop"
 
-#if defined(__x86_64__) || defined(__arm__)
+#if defined(__x86_64__) || defined(__arm__) || defined(__m68k__)
 /*
  * The minimal startup on pTOS x86-64: like _crtinit() in main.c, the kernel
  * provides the stack and the memory, so there is no TPA to shrink.  _stksize,
@@ -88,12 +88,16 @@ void _crtinit_noargs(void) {
 
 	bp = _base;
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__m68k__)
 	/* a private stack, far from the TPA: no TPA to carve a stack out of (main.c) */
 	{
 		long sp_now;
 
+#if defined(__m68k__)
+		__asm__ __volatile__("move.l %%sp,%0" : "=r" (sp_now));
+#else
 		__asm__ __volatile__("mov %0, sp" : "=r" (sp_now));
+#endif
 		if (sp_now > (long)bp->p_hitpa || sp_now < (long)bp)
 			crtinit_private_stack();
 	}

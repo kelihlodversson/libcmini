@@ -72,7 +72,7 @@ static void _main (int _argc, char **_argv, char **_envp) {
  * program needs: argv and environ (built in the startup area after the bss),
  * the constructors, and main().
  */
-#if defined(__x86_64__) || defined(__arm__)
+#if defined(__x86_64__) || defined(__arm__) || defined(__m68k__)
 static void crtinit_private_stack(void) {
 	/* its an application */
 	_app = 1;
@@ -110,7 +110,7 @@ void _crtinit(void) {
 
 	bp = _base;
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__m68k__)
 	/*
 	 * pTOS with an address space of its own for every process (ARM) starts a
 	 * program on a private stack, high in its address space and far from the
@@ -122,7 +122,11 @@ void _crtinit(void) {
 	{
 		long sp_now;
 
+#if defined(__m68k__)
+		__asm__ __volatile__("move.l %%sp,%0" : "=r" (sp_now));
+#else
 		__asm__ __volatile__("mov %0, sp" : "=r" (sp_now));
+#endif
 		if (sp_now > (long)bp->p_hitpa || sp_now < (long)bp)
 			crtinit_private_stack();
 	}
