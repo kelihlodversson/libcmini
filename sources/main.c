@@ -55,7 +55,6 @@ static void _main (int _argc, char **_argv, char **_envp) {
 #pragma GCC optimize "-fomit-frame-pointer"
 #pragma GCC optimize "-fno-defer-pop"
 
-#if defined(__x86_64__)
 /*
  * pTOS on x86-64 (the x32 ABI) starts a process with everything a TOS program
  * otherwise has to arrange for itself: it runs on a private stack that the
@@ -73,7 +72,8 @@ static void _main (int _argc, char **_argv, char **_envp) {
  * program needs: argv and environ (built in the startup area after the bss),
  * the constructors, and main().
  */
-void _crtinit(void) {
+#if defined(__x86_64__) || defined(__arm__) || defined(__m68k__)
+static void crtinit_private_stack(void) {
 	/* its an application */
 	_app = 1;
 
@@ -92,6 +92,12 @@ void _crtinit(void) {
 }
 #endif
 
+#if defined(__x86_64__)
+void _crtinit(void) {
+	crtinit_private_stack();
+}
+#endif
+
 #if !defined(__x86_64__)
 void _crtinit(void) {
 
@@ -103,6 +109,28 @@ void _crtinit(void) {
 	_app = 1;
 
 	bp = _base;
+
+#if defined(__arm__) || defined(__m68k__)
+	/*
+	 * pTOS with an address space of its own for every process (ARM) starts a
+	 * program on a private stack, high in its address space and far from the
+	 * TPA, which has nothing to carve a stack out of and nothing to give
+	 * back: the startup of the x32 port applies.  A kernel that runs the
+	 * program on the top of its TPA (sp at or below p_hitpa, above the
+	 * basepage) goes the way described below.
+	 */
+	{
+		long sp_now;
+
+#if defined(__m68k__)
+		__asm__ __volatile__("move.l %%sp,%0" : "=r" (sp_now));
+#else
+		__asm__ __volatile__("mov %0, sp" : "=r" (sp_now));
+#endif
+		if (sp_now > (long)bp->p_hitpa || sp_now < (long)bp)
+			crtinit_private_stack();
+	}
+#endif
 
 	/* m = # bytes used by environment + args */
 	m = parseargs(bp);

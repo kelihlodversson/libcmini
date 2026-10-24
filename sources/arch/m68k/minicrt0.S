@@ -60,7 +60,11 @@ __startprg:
 	movel	4(%sp), %a0	| get basepage
 	movel	%a0, C_SYMBOL_NAME(_base)	| save it
 	movel	4(%a0), %d0	| get _base->p_hitpa
+	cmpl	%d0, %sp		| a stack above the TPA...
+	bhis	1f		| ...or
+	cmpl	%a0, %sp		| below the basepage is a private one (pTOS, with an
+	bcss	1f		| address space of its own for every process): keep it
 	bclr	#0, %d0		| round off
 	movel	%d0, %sp		| set stack (temporarily)
 	subl	#64, %sp		| see note in mintlib/setstack.S
-	jmp	C_SYMBOL_NAME(_crtinit_noargs)	| in minimain.c
+1:	jmp	C_SYMBOL_NAME(_crtinit_noargs)	| in minimain.c
