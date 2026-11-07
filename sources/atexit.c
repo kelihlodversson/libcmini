@@ -18,7 +18,7 @@ int atexit(ExitFn func)
 {
 	ExitFn *new_at_exit = _at_exit;
     
-	if (_num_at_exit == 0)
+	if (_at_exit == NULL)
 		new_at_exit = malloc(sizeof(ExitFn));
 	else
 		new_at_exit = realloc(new_at_exit, (size_t)((_num_at_exit + 1) * sizeof(ExitFn)));
