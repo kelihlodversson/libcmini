@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mint/osbind.h>
+#include <mint/mintbind.h>
 #include "lib.h"
 
 ExitFn *_at_exit = NULL;
@@ -15,14 +16,21 @@ int _num_at_exit = 0;
 
 void exit(int status)
 {
-    /* first: call all atexit-registered func's */
-    for(; _num_at_exit; --_num_at_exit)
-        (*_at_exit++) ();
+    long result;
+    /* Pop before invoking: recursive exit cannot execute a callback twice.
+     * Keep the allocation base intact if a callback registers another one. */
+    while (_num_at_exit) {
+        ExitFn function = _at_exit[--_num_at_exit];
+        function();
+    }
 
-    /* second: close all files */
-    /* unneeded here, since handles are unbuffered */
+    result = Ptermgrp(status);
+    if (result == -32L || result == -25L)
+        (void)Pterm(status);
 
-    /* third: exit*/
-    (void) Pterm(status);
-    __builtin_unreachable();	/* get rid of gcc complaining about returning from exit() */
+    /* Successful termination never returns. An unexpected kernel response
+     * (including a returning legacy Pterm) must not return from exit or claim
+     * group termination succeeded. Fail stopped, yielding cooperatively. */
+    for (;;)
+        (void)Syield();
 }

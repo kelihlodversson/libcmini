@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check exit lifecycle and legacy fallback
+        run: python3 tests/exit/test.py
+      - name: Check exit with sanitizers
+        run: HOSTCC='cc -fsanitize=address,undefined -fno-pie -no-pie' python3 tests/exit/test.py
       - name: Check isolated cookie lookup
         run: python3 tests/getcookie/test.py
       - name: Check with sanitizers
