@@ -178,12 +178,18 @@ returns. `EINVFN` (-32) and `EINVAL` (-25) fall back to the unchanged raw
 
 Any other return, or a returning legacy `Pterm`, enters a nonreturning `Syield`
 loop. This fail-stop path does not falsely claim that PROCESS termination
-succeeded and does not return into user code from `exit`.
+succeeded and does not return into user code from `exit`. If an old kernel
+also lacks `Syield`, its EINVFN response is ignored: this exceptional path
+remains nonreturning but can busy-spin. It is containment, not a successful
+termination or a fairness guarantee; ordinary older-kernel fallback uses
+`Pterm` before reaching it.
 
 This does not add concurrent `atexit` registration or preemptive/SMP runtime
 synchronization. With `CLONE_VM`, ordinary C globals (including the callback
 list) are shared by the address space; independent runtime-data namespaces
-are not implied by separate PIDs. Raw `Pterm` remains available for THREAD-only
+are not implied by separate PIDs. Runtime-data isolation for future shared-VM
+Pexec belongs to pTOS #894 and requires an explicit runtime/linker policy,
+not another PID or a private atexit list layered over otherwise shared globals. Raw `Pterm` remains available for THREAD-only
 exit. pTOS must enable `CONF_WITH_PTERMGRP` for managed group termination.
 
 Run `python3 tests/exit/test.py` for host syscall models (including recursion,

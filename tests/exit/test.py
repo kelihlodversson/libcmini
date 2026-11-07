@@ -28,14 +28,18 @@ long mock_group(short status) {
     return response;
 }
 void mock_term(short status) { assert(status==argument); terms++; longjmp(done,2); }
-long mock_yield(void) { yields++; longjmp(done,3); }
+long mock_yield(void) {
+    yields++;
+    if(response==-99 && yields<4) return -32; /* old kernel lacks Syield */
+    longjmp(done,3);
+}
 static void first(void) { assert(callbacks==1); callbacks++; }
 static void second(void) { assert(callbacks==0); callbacks++; if(registering) assert(ptos_atexit(first)==0); if(recurse) ptos_exit(8); }
 int main(void) {
-    const long results[]={1234,-32,-25,-36,0,7};
+    const long results[]={1234,-32,-25,-36,0,7,-99};
     static int i;
-    for(i=0;i<8;i++) {
-        response=(i>=6)?1234:results[i%6]; recurse=(i==6); registering=(i==7); groups=terms=yields=callbacks=0;
+    for(i=0;i<9;i++) {
+        response=(i>=7)?1234:results[i%7]; recurse=(i==7); registering=(i==8); groups=terms=yields=callbacks=0;
         handlers=malloc(2*sizeof(*handlers)); assert(handlers);
         handlers[0]=registering?second:first; handlers[1]=second;
         _at_exit=handlers; _num_at_exit=registering?1:2;
@@ -45,7 +49,7 @@ int main(void) {
         assert(argument==(recurse?8:0x2345));
         if(response==1234) assert(seen==1 && !terms && !yields);
         else if(response==-32 || response==-25) assert(seen==2 && terms==1 && !yields);
-        else assert(seen==3 && yields==1 && !terms);
+        else assert(seen==3 && yields==(response==-99?4:1) && !terms);
     }
     return 0;
 }
