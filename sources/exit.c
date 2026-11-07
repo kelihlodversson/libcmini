@@ -17,12 +17,17 @@ int _num_at_exit = 0;
 void exit(int status)
 {
     long result;
+    ExitFn *functions;
     /* Pop before invoking: recursive exit cannot execute a callback twice.
      * Keep the allocation base intact if a callback registers another one. */
     while (_num_at_exit) {
         ExitFn function = _at_exit[--_num_at_exit];
         function();
     }
+
+    functions = _at_exit;
+    _at_exit = NULL;
+    free(functions); /* CLONE_VM peers may keep the address space alive. */
 
     result = Ptermgrp(status);
     if (result == -32L || result == -25L)
