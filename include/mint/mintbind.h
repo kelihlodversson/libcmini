@@ -12,6 +12,11 @@
 
 __BEGIN_DECLS
 
+/* pTOS managed PROCESS-group exit. Older kernels return EINVFN/EINVAL.
+ * Keep raw Pterm unchanged: it can be a THREAD-only operation. */
+#define Ptermgrp(status) ((long)trap_1_ww((short)0x192, (short)(status)))
+
+
 #if !defined(__XATTR) && !defined(__KERNEL__) && !defined(__KERNEL_MODULE__)
 #define __XATTR
 typedef struct xattr
