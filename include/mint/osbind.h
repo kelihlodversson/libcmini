@@ -168,7 +168,13 @@ __BEGIN_DECLS
        (long)trap_1_wl((short)(0x49),(long)(ptr))
 #define	       Mshrink(ptr,size)				       \
        (long)trap_1_wwll((short)(0x4A),(short)0,(long)(ptr),(long)(size))
-#if !defined(__arm__) && !defined(__x86_64__)
+#if !defined(__m68k__) && (defined(__arm__) || defined(__x86_64__))
+/* Source compatibility for pathname launches through Pexecve. */
+long __libc_pexec(short mode, const char *prog, const char *tail, const char *env);
+#define        Pexec(mode,prog,tail,env)                        \
+       __libc_pexec((short)(mode), (const char *)(long)(prog),   \
+                    (const char *)(long)(tail), (const char *)(long)(env))
+#else
 #define	       Pexec(mode,prog,tail,env)		       \
        (long)trap_1_wwlll((short)(0x4B),(short)(mode),(long)(prog),   \
 			   (long)(tail),(long)(env))

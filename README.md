@@ -142,6 +142,11 @@ An empty argv, empty environment entries, reserved ARGV entries and
 blocks exceeding the legacy limit return ERANGE. Support for the selected
 mode depends on the legacy kernel.
 
+On ARM and x32, existing `Pexec(mode, path, tail, env)` source can use
+pathname modes 0, 100 and 200. libcmini translates counted tails and
+extended `ARGV=` blocks to `Pexecve` vectors. A NULL environment inherits
+the caller's current `environ`. Staged basepage modes return EINVFN.
+
 Link `objs/elfcrt0.o` first for a native pTOS ELF executable. It consumes
 the initial argc, argv, envp and auxv supplied by Pexecve and PT_INTERP,
 uses AT_PTOS_BASEPAGE for GEMDOS state, and preserves AT_EXECFN separately
