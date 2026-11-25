@@ -11,12 +11,6 @@
 #define AT_EXECFN 31
 #define AT_PTOS_BASEPAGE 0x5000
 
-#if defined(__m68k__) && defined(__FASTCALL__)
-#define ELF_CALL __attribute__((stkparm))
-#else
-#define ELF_CALL
-#endif
-
 extern int main(int, char **, char **);
 extern long _stksize;
 const char *__libc_execfn;
@@ -29,9 +23,9 @@ static void no_startup(void)
     _exit(127);
 }
 
-void ELF_CALL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp);
+void __CDECL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp);
 
-void ELF_CALL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp)
+void __CDECL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp)
 {
     const uint32_t *aux;
     char **last = envp;
@@ -69,10 +63,10 @@ void ELF_CALL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp
     startup_ready = 1;
 }
 
-void ELF_CALL __libc_start_elf(const uint32_t *stack, ExitFn finalizer)
+void __CDECL __libc_start_elf(const uint32_t *stack, ExitFn finalizer)
     __attribute__((noreturn));
 
-void ELF_CALL __libc_start_elf(const uint32_t *stack, ExitFn finalizer)
+void __CDECL __libc_start_elf(const uint32_t *stack, ExitFn finalizer)
 {
     uint32_t argc = *stack++;
     char **argv = (char **)stack;
