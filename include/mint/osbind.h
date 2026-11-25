@@ -168,9 +168,13 @@ __BEGIN_DECLS
        (long)trap_1_wl((short)(0x49),(long)(ptr))
 #define	       Mshrink(ptr,size)				       \
        (long)trap_1_wwll((short)(0x4A),(short)0,(long)(ptr),(long)(size))
+#if !defined(__arm__) && !defined(__x86_64__)
 #define	       Pexec(mode,prog,tail,env)		       \
        (long)trap_1_wwlll((short)(0x4B),(short)(mode),(long)(prog),   \
 			   (long)(tail),(long)(env))
+#endif
+/* pTOS GEMDOS 0x193. Modes 0, 100 and 200 consume explicit vectors. */
+long Pexecve(short mode, const char *path, char *const argv[], char *const envp[]);
 #define	       Pterm(rv)					       \
        (void)trap_1_ww((short)(0x4C),(short)(rv))
 #define	       Fsfirst(filespec,attr)				       \

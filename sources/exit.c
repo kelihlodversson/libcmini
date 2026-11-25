@@ -12,12 +12,22 @@
 
 ExitFn *_at_exit = NULL;
 int _num_at_exit = 0;
+#ifdef __ELF__
+ExitFn __libc_rtld_fini;
+#endif
 
 void exit(int status)
 {
     /* first: call all atexit-registered func's */
     for(; _num_at_exit; --_num_at_exit)
         (*_at_exit++) ();
+#ifdef __ELF__
+    if (__libc_rtld_fini) {
+        ExitFn fini = __libc_rtld_fini;
+        __libc_rtld_fini = NULL;
+        fini();
+    }
+#endif
 
     /* second: close all files */
     /* unneeded here, since handles are unbuffered */

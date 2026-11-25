@@ -27,11 +27,16 @@ void __main (void);
 #define FILE_GET_HANDLE(fp) ((long)((fp)->__cookie))
 
 typedef void (*ExitFn)(void);
+#ifdef __ELF__
+extern ExitFn __libc_rtld_fini;
+#endif
 extern char **environ;
 extern short _app;
 extern unsigned long _PgmSize;
 extern long __libc_argc;
 extern char **__libc_argv;
+extern char *program_invocation_name;
+extern char *program_invocation_short_name;
 extern int __mint;
 
 struct _mem_stream { char *xstring; char *xestring; };

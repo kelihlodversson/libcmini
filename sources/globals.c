@@ -18,6 +18,8 @@ int errno;
 
 char **environ;
 long __libc_argc = 1;
+char *program_invocation_name = "unknown application";
+char *program_invocation_short_name = "unknown application";
 
 static char *__libc_argv_default[] = { "unknown application", NULL };
 char **__libc_argv = __libc_argv_default;

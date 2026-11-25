@@ -18,11 +18,6 @@ static long parseargs(BASEPAGE *bp);
 
 extern long _stksize;
 
-/* globals */
-
-char *program_invocation_name = "unknown application";
-char *program_invocation_short_name = "unknown application";
-
 #undef isspace
 #define isspace(c) ((c) == ' '||(c) == '\t')
 #undef isdigit

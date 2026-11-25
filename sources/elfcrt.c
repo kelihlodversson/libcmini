@@ -1,0 +1,100 @@
+/* Standard pTOS ELF entry. The legacy CRT remains usable for PRG and
+ * basepage entry while native callers migrate to Pexecve. */
+#if defined(__ELF__)
+#include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <mint/mintbind.h>
+#include "lib.h"
+
+#define AT_BASE 7
+#define AT_EXECFN 31
+#define AT_PTOS_BASEPAGE 0x5000
+
+#if defined(__m68k__) && defined(__FASTCALL__)
+#define ELF_CALL __attribute__((stkparm))
+#else
+#define ELF_CALL
+#endif
+
+extern int main(int, char **, char **);
+extern long _stksize;
+const char *__libc_execfn;
+static int startup_ready;
+static int has_interpreter;
+
+static void no_startup(void) __attribute__((noreturn));
+static void no_startup(void)
+{
+    _exit(127);
+}
+
+static void ELF_CALL publish_vectors(uint32_t argc, char **argv, char **envp)
+{
+    const uint32_t *aux;
+    char **last = envp;
+    unsigned int i;
+
+    if (startup_ready)
+        return;
+    for (i = 0; i < 16384 && *last; i++, last++)
+        ;
+    if (i == 16384)
+        no_startup();
+    aux = (const uint32_t *)(last + 1);
+    for (i = 0; i < 32 && aux[0]; i++, aux += 2) {
+        switch (aux[0]) {
+        case AT_BASE: has_interpreter = aux[1] != 0; break;
+        case AT_EXECFN: __libc_execfn = (const char *)(uintptr_t)aux[1]; break;
+        case AT_PTOS_BASEPAGE: _base = (BASEPAGE *)(uintptr_t)aux[1]; break;
+        }
+    }
+    if (i == 32 || !_base)
+        no_startup();
+    __libc_argc = argc;
+    __libc_argv = argv;
+    environ = envp;
+    if (argc) {
+        char *short_name = argv[0];
+        char *p;
+
+        for (p = short_name; *p; p++)
+            if (*p == '/' || *p == '\\')
+                short_name = p + 1;
+        program_invocation_name = argv[0];
+        program_invocation_short_name = short_name;
+    }
+    startup_ready = 1;
+}
+
+/* The startup object precedes user objects in the link. pTOS ld.so calls
+ * preinit entries with the original vectors before invoking constructors. */
+static void (ELF_CALL *const preinit)(uint32_t, char **, char **)
+    __attribute__((used, section(".preinit_array"))) = publish_vectors;
+
+void ELF_CALL __libc_start_elf(const uint32_t *stack, ExitFn finalizer)
+    __attribute__((noreturn));
+
+void ELF_CALL __libc_start_elf(const uint32_t *stack, ExitFn finalizer)
+{
+    uint32_t argc = *stack++;
+    char **argv = (char **)stack;
+
+    if (argc > 16384 || argv[argc])
+        no_startup();
+    publish_vectors(argc, argv, argv + argc + 1);
+    (void)Pdomain(1);
+    if (_stksize > 0)
+        (void)Psetlimit(PSETLIMIT_STACK, _stksize);
+    if (has_interpreter) {
+        if (!finalizer)
+            no_startup();
+        __libc_rtld_fini = finalizer;
+    }
+#ifdef __GCC_HAVE_INITFINI_ARRAY_SUPPORT
+    else
+        __main();
+#endif
+    exit(main(argc, argv, environ));
+}
+#endif

@@ -129,6 +129,25 @@ RSP+8 is divisible by 16. Accessory entry initializes `_app=0` before `main`.
 Both entry types retain the private stack supplied by pTOS and apply a
 positive `_stksize` through `Psetlimit(PSETLIMIT_STACK, ...)`.
 
+### Pexecve and native ELF startup
+
+`Pexecve(mode, path, argv, envp)` uses the pTOS GEMDOS vector ABI. Mode
+0 returns the child's exit status, 100 returns its PID, and 200 replaces
+the current process. Pass both NULL-terminated arrays explicitly. The
+POSIX `execve` wrapper uses mode 200 and returns -1 with errno on failure.
+
+On m68k, EINVFN from Pexecve selects historical Pexec with the same mode
+and extended ARGV encoding. Empty arguments use the NULL index extension.
+An empty argv, empty environment entries, reserved ARGV entries and
+blocks exceeding the legacy limit return ERANGE. Support for the selected
+mode depends on the legacy kernel.
+
+Link `objs/elfcrt0.o` first for a native pTOS ELF executable. It consumes
+the initial argc, argv, envp and auxv supplied by Pexecve and PT_INTERP,
+uses AT_PTOS_BASEPAGE for GEMDOS state, and preserves AT_EXECFN separately
+from argv[0]. The `crt0.o` and `minicrt0.o` objects serve legacy basepage
+entry, including m68k PRG programs and existing accessories during cutover.
+
 ## Installation
 
 The basic installation command is `make install`. The default install
