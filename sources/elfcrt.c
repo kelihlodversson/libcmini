@@ -29,7 +29,9 @@ static void no_startup(void)
     _exit(127);
 }
 
-static void ELF_CALL publish_vectors(uint32_t argc, char **argv, char **envp)
+void ELF_CALL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp);
+
+void ELF_CALL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp)
 {
     const uint32_t *aux;
     char **last = envp;
@@ -67,11 +69,6 @@ static void ELF_CALL publish_vectors(uint32_t argc, char **argv, char **envp)
     startup_ready = 1;
 }
 
-/* The startup object precedes user objects in the link. pTOS ld.so calls
- * preinit entries with the original vectors before invoking constructors. */
-static void (ELF_CALL *const preinit)(uint32_t, char **, char **)
-    __attribute__((used, section(".preinit_array"))) = publish_vectors;
-
 void ELF_CALL __libc_start_elf(const uint32_t *stack, ExitFn finalizer)
     __attribute__((noreturn));
 
@@ -82,7 +79,7 @@ void ELF_CALL __libc_start_elf(const uint32_t *stack, ExitFn finalizer)
 
     if (argc > 16384 || argv[argc])
         no_startup();
-    publish_vectors(argc, argv, argv + argc + 1);
+    __libc_elf_publish_vectors(argc, argv, argv + argc + 1);
     (void)Pdomain(1);
     if (_stksize > 0)
         (void)Psetlimit(PSETLIMIT_STACK, _stksize);
