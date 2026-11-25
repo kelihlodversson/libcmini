@@ -24,6 +24,7 @@ long test_trap(short fn, short mode, long path, long a, long b)
         const char expected[] = "KEY=two words\0FLAG=\0ARGV=NULL:1,4\0chosen name\0 \0"
                                 "two words\0literal\"quote\0 \0";
         assert(*(const unsigned char *)a == 127);
+        assert(!strcmp((const char *)a + 1, "'' 'two words' 'literal\"quote' ''"));
         assert(!memcmp((const char *)b, expected, sizeof(expected)));
     }
     return mode == 200 ? -40 : 67;

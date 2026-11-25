@@ -29,6 +29,32 @@ static size_t write_index(char *out, unsigned int index)
     return count;
 }
 
+static void legacy_tail(char tail[128], char *const argv[], unsigned int argc)
+{
+    unsigned int i, used = 1;
+    int quoted = 0;
+
+    for (i = 1; i < argc; i++)
+        if (!argv[i][0] || strpbrk(argv[i], " \t\r\n'\""))
+            quoted = 1;
+
+    /* Keep the conventional text for programs that read the basepage
+     * directly. The marker and ARGV block carry the exact arguments. */
+    for (i = 1; i < argc && used < 127; i++) {
+        const char *arg = argv[i];
+
+        if (i > 1) tail[used++] = ' ';
+        if (quoted && used < 127) tail[used++] = '\'';
+        while (*arg && used < 127) {
+            char ch = *arg++;
+            tail[used++] = ch;
+            if (quoted && ch == '\'' && used < 127)
+                tail[used++] = '\'';
+        }
+        if (quoted && used < 127) tail[used++] = '\'';
+    }
+}
+
 /* Extended ARGV is the legacy transport for an explicit argv[0] and empty
  * arguments. Its double-NUL environment cannot represent empty env entries. */
 static long legacy_exec(short mode, const char *path, char *const argv[],
@@ -99,6 +125,7 @@ static long legacy_exec(short mode, const char *path, char *const argv[],
         out += n;
     }
     *out = 0;
+    legacy_tail(tail, argv, argc);
     result = Pexec(mode, path, tail, block);
     free(block);
     return result;
