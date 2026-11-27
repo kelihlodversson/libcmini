@@ -10,6 +10,10 @@
 # include <mint/osbind.h>
 #endif
 
+#if !defined(__m68k__)
+# include <mint/poll.h>
+#endif
+
 __BEGIN_DECLS
 
 /* pTOS managed PROCESS-group exit. Older kernels return EINVFN/EINVAL.
@@ -145,9 +149,11 @@ typedef struct xattr
 		trap_1_w(0x11b)
 #define Pwait3(flag, rusage)					\
 		trap_1_wwl(0x11c, (short)(flag), (long)(rusage))
+#if defined(__m68k__)
 #define Fselect(time, rfd, wfd, xfd)				\
 		(int)trap_1_wwlll(0x11d, (unsigned short)(time), (long)(rfd), \
 				(long)(wfd), (long)(xfd))
+#endif
 #define Prusage(rsp)						\
 		(int)trap_1_wl(0x11e, (long)(rsp))
 #define Psetlimit(i, val)					\
@@ -302,8 +308,10 @@ typedef struct xattr
 		trap_1_www(0x158, (short)(which), (short)(who))
 #define Psetpriority(which, who, prio) \
 		trap_1_wwww(0x159, (short)(which), (short)(who), (short)(prio))
+#if defined(__m68k__)
 #define Fpoll(fds, nfds, timeout) \
 		trap_1_wlll(0x15a,(long)(fds),(long)(nfds),(long)(timeout))
+#endif
 #define Fwritev(fh, iovp, iovcnt) \
 		trap_1_wwll(0x15b,(short)(fh),(long)(iovp),(long)(iovcnt))
 #define Freadv(fh, iovp, iovcnt) \
