@@ -23,6 +23,11 @@ long trap_1_wllll(short fn, long address, long nfds, long high, long low)
         fds[0].revents = response;
         return 1;
     }
+    if (response == 3) {
+        assert(nfds == 1 && fds[0].fd == 5 && fds[0].events == (POLLIN | POLLOUT | POLLPRI));
+        fds[0].revents = POLLIN;
+        return 1;
+    }
     assert(nfds == 2 && fds[0].fd == 5 && fds[1].fd == 31);
     assert(fds[0].events == (POLLIN | POLLOUT) && fds[1].events == POLLPRI);
     if (response < 0)
@@ -68,6 +73,14 @@ int main(void)
         response = POLLHUP;
         assert(Fselect(25, NULL, NULL, &except_mask) == 1);
         assert(except_mask == (UINT32_C(1) << 31) && timeout_bits == 25);
+
+        read_mask = UINT32_C(1) << 5;
+        response = 1;
+        assert(Fselect(0, &read_mask, &read_mask, &except_mask) == 3);
+        assert(read_mask == (UINT32_C(1) << 5) && except_mask == (UINT32_C(1) << 31));
+        response = 3;
+        assert(Fselect(0, &read_mask, &read_mask, &read_mask) == 1);
+        assert(read_mask == (UINT32_C(1) << 5));
     }
 #endif
     return 0;

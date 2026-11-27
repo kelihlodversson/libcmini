@@ -151,7 +151,8 @@ typedef struct xattr
 				(long)(wfd), (long)(xfd))
 #else
 /* Optional inputs/outputs point to 32-bit masks. Zero waits indefinitely.
- * Error or hangup marks the descriptor ready in each mask selecting it. */
+ * Error or hangup marks the descriptor ready in each mask selecting it.
+ * Masks with the same address receive the bitwise union of their results. */
 int Fselect(unsigned short timeout, void *read_mask, void *write_mask, void *except_mask);
 #endif
 #define Prusage(rsp)						\

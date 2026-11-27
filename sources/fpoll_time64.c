@@ -38,7 +38,7 @@ long Fpoll(void *fds, unsigned long nfds, long timeout_ms)
 int Fselect(unsigned short timeout, void *read_mask, void *write_mask, void *except_mask)
 {
     static const uint16_t event[3] = { POLLIN, POLLOUT, POLLPRI };
-    void *const output[3] = { read_mask, write_mask, except_mask };
+    void *output[3] = { read_mask, write_mask, except_mask };
     uint32_t masks[3] = {0}, requested, i, j, nfds = 0;
     POLLFD fds[32];
     long result;
@@ -84,9 +84,18 @@ int Fselect(unsigned short timeout, void *read_mask, void *write_mask, void *exc
             }
         }
     }
-    for (i = 0; i < 3; i++)
-        if (output[i])
-            memcpy(output[i], &masks[i], sizeof(masks[i]));
+    /* Write each shared bitmap once, after counting readiness per mask. */
+    for (i = 0; i < 3; i++) {
+        if (!output[i])
+            continue;
+        for (j = i + 1; j < 3; j++) {
+            if (output[j] == output[i]) {
+                masks[i] |= masks[j];
+                output[j] = NULL;
+            }
+        }
+        memcpy(output[i], &masks[i], sizeof(masks[i]));
+    }
     return (int)result;
 }
 #endif
