@@ -153,6 +153,14 @@ uses AT_PTOS_BASEPAGE for GEMDOS state, and preserves AT_EXECFN separately
 from argv[0]. The `crt0.o` and `minicrt0.o` objects serve legacy basepage
 entry, including m68k PRG programs and existing accessories during cutover.
 
+The native ELF CRT supports both roles in one executable. The launcher
+supplies `AT_PTOS_ENTRY_TYPE` (0x5006) in the auxiliary vector with value
+0 for a program and 1 for an accessory. Without the tag, the default is a
+program. The CRT makes `_app` available before application preinitializers
+and keeps the ELF stack, vectors, and loader finalizer in both cases.
+The CRT's pTOS entry note lets kernel AES recognize the standard ELF
+accessory entry convention.
+
 ## Installation
 
 The basic installation command is `make install`. The default install

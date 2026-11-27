@@ -10,6 +10,8 @@
 #define AT_BASE 7
 #define AT_EXECFN 31
 #define AT_PTOS_BASEPAGE 0x5000
+#define AT_PTOS_ENTRY_TYPE 0x5006
+#define PTOS_ENTRY_ACCESSORY 1
 
 extern int main(int, char **, char **);
 extern long _stksize;
@@ -30,6 +32,7 @@ void __CDECL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp)
     const uint32_t *aux;
     char **last = envp;
     unsigned int i;
+    uint32_t entry_type = 0;
 
     if (startup_ready)
         return;
@@ -43,10 +46,12 @@ void __CDECL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp)
         case AT_BASE: has_interpreter = aux[1] != 0; break;
         case AT_EXECFN: __libc_execfn = (const char *)(uintptr_t)aux[1]; break;
         case AT_PTOS_BASEPAGE: _base = (BASEPAGE *)(uintptr_t)aux[1]; break;
+        case AT_PTOS_ENTRY_TYPE: entry_type = aux[1]; break;
         }
     }
-    if (i == 32 || !_base)
+    if (i == 32 || !_base || entry_type > PTOS_ENTRY_ACCESSORY)
         no_startup();
+    _app = entry_type != PTOS_ENTRY_ACCESSORY;
     __libc_argc = argc;
     __libc_argv = argv;
     environ = envp;

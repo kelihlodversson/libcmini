@@ -1,5 +1,6 @@
 /* The standard ELF stack is 16-byte aligned at entry. */
 #include "libc-symbols.h"
+#include "../elf-entry-note.h"
 
 	.text
 	.globl C_SYMBOL_NAME(_start)
