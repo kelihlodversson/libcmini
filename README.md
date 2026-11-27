@@ -158,6 +158,8 @@ supplies `AT_PTOS_ENTRY_TYPE` (0x5006) in the auxiliary vector with value
 0 for a program and 1 for an accessory. Without the tag, the default is a
 program. The CRT makes `_app` available before application preinitializers
 and keeps the ELF stack, vectors, and loader finalizer in both cases.
+Dependent system libraries can read the startup role through the private
+`__ptos_entry_type()` accessor.
 The CRT's pTOS entry note lets kernel AES recognize the standard ELF
 accessory entry convention.
 

@@ -18,6 +18,14 @@ extern long _stksize;
 const char *__libc_execfn;
 static int startup_ready;
 static int has_interpreter;
+static uint32_t startup_entry_type;
+
+uint32_t __CDECL __ptos_entry_type(void);
+
+uint32_t __CDECL __ptos_entry_type(void)
+{
+    return startup_entry_type;
+}
 
 static void no_startup(void) __attribute__((noreturn));
 static void no_startup(void)
@@ -51,6 +59,7 @@ void __CDECL __libc_elf_publish_vectors(uint32_t argc, char **argv, char **envp)
     }
     if (i == 32 || !_base || entry_type > PTOS_ENTRY_ACCESSORY)
         no_startup();
+    startup_entry_type = entry_type;
     _app = entry_type != PTOS_ENTRY_ACCESSORY;
     __libc_argc = argc;
     __libc_argv = argv;
