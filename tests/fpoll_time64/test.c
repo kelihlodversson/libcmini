@@ -18,6 +18,11 @@ long trap_1_wllll(short fn, long address, long nfds, long high, long low)
     timeout_bits = ((uint64_t)(uint32_t)high << 32) | (uint32_t)low;
     if (!response)
         return 0;
+    if (response == POLLERR || response == POLLHUP) {
+        assert(nfds == 1 && fds[0].fd == 31 && fds[0].events == POLLPRI);
+        fds[0].revents = response;
+        return 1;
+    }
     assert(nfds == 2 && fds[0].fd == 5 && fds[1].fd == 31);
     assert(fds[0].events == (POLLIN | POLLOUT) && fds[1].events == POLLPRI);
     if (response < 0)
@@ -55,6 +60,14 @@ int main(void)
         response = 2;
         assert(Fselect(5, &read_mask, &write_mask, &except_mask) == -37);
         assert(!read_mask && !write_mask && !except_mask && calls == 10);
+
+        except_mask = UINT32_C(1) << 31;
+        response = POLLERR;
+        assert(Fselect(0, NULL, NULL, &except_mask) == 1);
+        assert(except_mask == (UINT32_C(1) << 31) && timeout_bits == UINT64_MAX);
+        response = POLLHUP;
+        assert(Fselect(25, NULL, NULL, &except_mask) == 1);
+        assert(except_mask == (UINT32_C(1) << 31) && timeout_bits == 25);
     }
 #endif
     return 0;

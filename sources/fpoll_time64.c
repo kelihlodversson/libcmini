@@ -76,7 +76,7 @@ int Fselect(unsigned short timeout, void *read_mask, void *write_mask, void *exc
             break;
         }
         for (j = 0; j < 3; j++) {
-            uint16_t ready = event[j] | (j < 2 ? POLLERR | POLLHUP : 0);
+            uint16_t ready = event[j] | POLLERR | POLLHUP;
 
             if ((fds[i].events & event[j]) && (fds[i].revents & ready)) {
                 masks[j] |= UINT32_C(1) << fds[i].fd;

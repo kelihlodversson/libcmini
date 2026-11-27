@@ -150,7 +150,8 @@ typedef struct xattr
 		(int)trap_1_wwlll(0x11d, (unsigned short)(time), (long)(rfd), \
 				(long)(wfd), (long)(xfd))
 #else
-/* Optional inputs/outputs point to 32-bit masks. Zero waits indefinitely. */
+/* Optional inputs/outputs point to 32-bit masks. Zero waits indefinitely.
+ * Error or hangup marks the descriptor ready in each mask selecting it. */
 int Fselect(unsigned short timeout, void *read_mask, void *write_mask, void *except_mask);
 #endif
 #define Prusage(rsp)						\
