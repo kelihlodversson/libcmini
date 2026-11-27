@@ -29,12 +29,5 @@ __BEGIN_DECLS
  * zero snapshots readiness, -1 waits indefinitely. */
 long Fpoll_time64(POLLFD *fds, uint32_t nfds, int64_t timeout_ms);
 
-#if !defined(__m68k__)
-/* The legacy adapters use only the canonical pTOS trap. Fselect accepts
- * optional pointers to 32-bit masks and treats a zero timeout as infinite. */
-long Fpoll(POLLFD *fds, uint32_t nfds, int32_t timeout_ms);
-int Fselect(unsigned short timeout, void *read_mask, void *write_mask, void *except_mask);
-#endif
-
 __END_DECLS
 #endif

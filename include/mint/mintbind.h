@@ -10,10 +10,6 @@
 # include <mint/osbind.h>
 #endif
 
-#if !defined(__m68k__)
-# include <mint/poll.h>
-#endif
-
 __BEGIN_DECLS
 
 /* pTOS managed PROCESS-group exit. Older kernels return EINVFN/EINVAL.
@@ -153,6 +149,9 @@ typedef struct xattr
 #define Fselect(time, rfd, wfd, xfd)				\
 		(int)trap_1_wwlll(0x11d, (unsigned short)(time), (long)(rfd), \
 				(long)(wfd), (long)(xfd))
+#else
+/* Optional inputs/outputs point to 32-bit masks. Zero waits indefinitely. */
+int Fselect(unsigned short timeout, void *read_mask, void *write_mask, void *except_mask);
 #endif
 #define Prusage(rsp)						\
 		(int)trap_1_wl(0x11e, (long)(rsp))
@@ -311,6 +310,9 @@ typedef struct xattr
 #if defined(__m68k__)
 #define Fpoll(fds, nfds, timeout) \
 		trap_1_wlll(0x15a,(long)(fds),(long)(nfds),(long)(timeout))
+#else
+/* Accept the original eight-byte MiNT record from any compatible header. */
+long Fpoll(void *fds, unsigned long nfds, long timeout_ms);
 #endif
 #define Fwritev(fh, iovp, iovcnt) \
 		trap_1_wwll(0x15b,(short)(fh),(long)(iovp),(long)(iovcnt))

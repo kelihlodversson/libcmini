@@ -28,9 +28,11 @@ long Fpoll_time64(POLLFD *fds, uint32_t nfds, int64_t timeout_ms)
 }
 
 #if !defined(__m68k__)
-long Fpoll(POLLFD *fds, uint32_t nfds, int32_t timeout_ms)
+long Fpoll(void *fds, unsigned long nfds, long timeout_ms)
 {
-    return Fpoll_time64(fds, nfds, timeout_ms < 0 ? -1 : timeout_ms);
+    int32_t interval = (int32_t)timeout_ms;
+
+    return Fpoll_time64(fds, (uint32_t)nfds, interval < 0 ? -1 : interval);
 }
 
 int Fselect(unsigned short timeout, void *read_mask, void *write_mask, void *except_mask)
