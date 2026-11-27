@@ -1,4 +1,5 @@
 #include "libc-symbols.h"
+#include "../elf-entry-note.h"
 
 	.text
 	.even
