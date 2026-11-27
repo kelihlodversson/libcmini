@@ -121,7 +121,7 @@ endif
 # from the portable C sources directly under sources/ (see sources/arch/arm/
 # for the ARM equivalents, once ported). Object basenames must stay unique
 # across the whole tree since ASRCS/CSRCS feed into the same flat objs/ dir.
-ASRCS= $(filter-out crt0.S minicrt0.S, $(notdir $(wildcard $(ARCHDIR)/*.S)))
+ASRCS= $(filter-out crt0.S minicrt0.S elfcrt0.S, $(notdir $(wildcard $(ARCHDIR)/*.S)))
 
 SRCDIR=sources
 
@@ -165,6 +165,9 @@ LIBIIO=libiiomini.a
 LIBS=$(patsubst %,%/$(LIBC),$(LIBDIRS))
 LIBSIIO=$(patsubst %,%/$(LIBIIO),$(LIBDIRS))
 STARTUPS=$(patsubst %,%/crt0.o,$(OBJDIRS)) $(patsubst %,%/minicrt0.o,$(OBJDIRS))
+ifneq (,$(filter Y yes y,$(ARCH_ARM) $(ARCH_X86_64) $(COMPILE_ELF)))
+STARTUPS += $(patsubst %,%/elfcrt0.o,$(OBJDIRS))
+endif
 
 TESTS:= $(shell ls tests | grep -E -v '^(CVS)$$')
 
@@ -341,12 +344,15 @@ ifneq (,$(filter $(COMPILE_ELF),Y yes y))
 	# otherwise the linker will complain about incompatible machines
 	@for i in $(MULTILIBDIRS); do \
 		mkdir -pv $(PREFIX_FOR_STARTUP)/$$i; \
-		cp -av $(BUILDDIR)/$$i/objs/crt0.o $(BUILDDIR)/$$i/objs/minicrt0.o $(PREFIX_FOR_STARTUP)/$$i; \
+		cp -av $(BUILDDIR)/$$i/objs/crt0.o $(BUILDDIR)/$$i/objs/minicrt0.o $(BUILDDIR)/$$i/objs/elfcrt0.o $(PREFIX_FOR_STARTUP)/$$i; \
 	done
 else
 	# for a.out, we can just use a single version
 	@mkdir -pv $(PREFIX_FOR_STARTUP)
 	@cp -av $(BUILDDIR)/objs/crt0.o $(BUILDDIR)/objs/minicrt0.o $(PREFIX_FOR_STARTUP)
+ifneq (,$(filter Y yes y,$(ARCH_ARM) $(ARCH_X86_64)))
+	@cp -av $(BUILDDIR)/objs/elfcrt0.o $(PREFIX_FOR_STARTUP)
+endif
 endif
 endif
 

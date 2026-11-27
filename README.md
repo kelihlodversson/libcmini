@@ -129,6 +129,30 @@ RSP+8 is divisible by 16. Accessory entry initializes `_app=0` before `main`.
 Both entry types retain the private stack supplied by pTOS and apply a
 positive `_stksize` through `Psetlimit(PSETLIMIT_STACK, ...)`.
 
+### Pexecve and native ELF startup
+
+`Pexecve(mode, path, argv, envp)` uses the pTOS GEMDOS vector ABI. Mode
+0 returns the child's exit status, 100 returns its PID, and 200 replaces
+the current process. Pass both NULL-terminated arrays explicitly. The
+POSIX `execve` wrapper uses mode 200 and returns -1 with errno on failure.
+
+On m68k, EINVFN from Pexecve selects historical Pexec with the same mode
+and extended ARGV encoding. Empty arguments use the NULL index extension.
+An empty argv, empty environment entries, reserved ARGV entries and
+blocks exceeding the legacy limit return ERANGE. Support for the selected
+mode depends on the legacy kernel.
+
+On ARM and x32, existing `Pexec(mode, path, tail, env)` source can use
+pathname modes 0, 100 and 200. libcmini translates counted tails and
+extended `ARGV=` blocks to `Pexecve` vectors. A NULL environment inherits
+the caller's current `environ`. Staged basepage modes return EINVFN.
+
+Link `objs/elfcrt0.o` first for a native pTOS ELF executable. It consumes
+the initial argc, argv, envp and auxv supplied by Pexecve and PT_INTERP,
+uses AT_PTOS_BASEPAGE for GEMDOS state, and preserves AT_EXECFN separately
+from argv[0]. The `crt0.o` and `minicrt0.o` objects serve legacy basepage
+entry, including m68k PRG programs and existing accessories during cutover.
+
 ## Installation
 
 The basic installation command is `make install`. The default install
@@ -167,3 +191,27 @@ The `STDIO_MAP_NEWLINE` option is only relevant at compile time, so this was lef
 Contributions are always welcome.
 
 Please make sure you provide all new code using 'four spaces' indentation without TAB characters and trailing spaces removed.
+
+### PROCESS-wide exit on pTOS
+
+`exit(status)` drains `atexit` callbacks in reverse registration order, popping
+before invocation so recursive `exit` cannot repeat a callback. It then calls
+`Ptermgrp((short)status)` (GEMDOS `0x192`). A successful kernel call never
+returns. `EINVFN` (-32) and `EINVAL` (-25) fall back to the unchanged raw
+`Pterm`; this preserves older kernels and unsupported managed contexts.
+
+Any other return, or a returning legacy `Pterm`, enters a nonreturning `Syield`
+loop. This fail-stop path does not falsely claim that PROCESS termination
+succeeded and does not return into user code from `exit`.
+
+This does not add concurrent `atexit` registration or preemptive/SMP runtime
+synchronization. With `CLONE_VM`, ordinary C globals (including the callback
+list) are shared by the address space; independent runtime-data namespaces
+are not implied by separate PIDs. Raw `Pterm` remains available for THREAD-only
+exit. pTOS must enable `CONF_WITH_PTERMGRP` for managed group termination.
+
+Run `python3 tests/exit/test.py` for host syscall models (including recursion,
+legacy fallback and fail-stop returns), and `sh tests/exit/test-abi.sh` with the
+project cross-compilers for x32, ARM, m68k and supported m68k short/fastcall
+compile checks. Neither host models nor cross-compilation proves native runtime;
+the corresponding pTOS PR #910 supplies native execution tests.

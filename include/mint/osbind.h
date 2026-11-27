@@ -168,9 +168,19 @@ __BEGIN_DECLS
        (long)trap_1_wl((short)(0x49),(long)(ptr))
 #define	       Mshrink(ptr,size)				       \
        (long)trap_1_wwll((short)(0x4A),(short)0,(long)(ptr),(long)(size))
+#if !defined(__m68k__) && (defined(__arm__) || defined(__x86_64__))
+/* Source compatibility for pathname launches through Pexecve. */
+long __libc_pexec(short mode, const char *prog, const char *tail, const char *env);
+#define        Pexec(mode,prog,tail,env)                        \
+       __libc_pexec((short)(mode), (const char *)(long)(prog),   \
+                    (const char *)(long)(tail), (const char *)(long)(env))
+#else
 #define	       Pexec(mode,prog,tail,env)		       \
        (long)trap_1_wwlll((short)(0x4B),(short)(mode),(long)(prog),   \
 			   (long)(tail),(long)(env))
+#endif
+/* pTOS GEMDOS 0x193. Modes 0, 100 and 200 consume explicit vectors. */
+long Pexecve(short mode, const char *path, char *const argv[], char *const envp[]);
 #define	       Pterm(rv)					       \
        (void)trap_1_ww((short)(0x4C),(short)(rv))
 #define	       Fsfirst(filespec,attr)				       \

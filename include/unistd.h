@@ -14,6 +14,7 @@ int unlink(const char *filename);
 off_t lseek(int fd, off_t offset, int whence);
 void _exit (int __status) __attribute__ ((__noreturn__));
 int chdir(const char *filename);
+int execve(const char *path, char *const argv[], char *const envp[]);
 unsigned int sleep (unsigned int __seconds);
 char* getcwd(char* buffer, size_t bufflen);
 
