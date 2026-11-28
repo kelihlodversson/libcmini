@@ -16,6 +16,13 @@ jobs:
       - run: python3 tests/pexecve/test.py
       - run: HOSTCC='cc -fsanitize=address,undefined -fno-pie -no-pie' python3 tests/pexecve/test.py
 
+  fpoll-time64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/fpoll_time64/test.py
+      - run: HOSTCC='cc -fsanitize=address,undefined -fno-pie -no-pie' python3 tests/fpoll_time64/test.py
+
   getcookie:
     runs-on: ubuntu-latest
     steps:
